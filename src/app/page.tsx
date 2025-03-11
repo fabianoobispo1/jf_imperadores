@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <div className="flex h-screen items-center justify-center ">
-      Pagina Inicial
+      Inicial
       <ModeSwitcherTheme />
     </div>
   )
