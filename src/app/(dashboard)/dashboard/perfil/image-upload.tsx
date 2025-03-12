@@ -15,8 +15,7 @@ interface ImageUploadProps {
 export const ImageUpload = ({ value, onChange, disabled }: ImageUploadProps) => {
   const [loading, setLoading] = useState(false)
   const storage = new MinioStorageProvider()
-  console.log('componente imagem upload')
-  console.log('componente imagem upload')
+
   const removeOldImage = async () => {
     if (value?.key) {
       try {

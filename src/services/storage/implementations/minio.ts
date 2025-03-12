@@ -1,5 +1,4 @@
 import S3 from 'aws-sdk/clients/s3'
-
 import type { IStorageProvider } from '../interface'
 import { CONFIG } from '../config'
 
@@ -25,21 +24,44 @@ export class MinioStorageProvider implements IStorageProvider {
     const params = {
       Bucket: CONFIG.providers.storage.bucket as string,
       Key: key,
-      Body: buffer, // Usar o buffer ao invés do arquivo direto
+      Body: buffer,
       ACL: 'public-read',
-      ContentType: file.type, // Adicionar o tipo do conteúdo
+      ContentType: file.type,
     }
 
     try {
-      console.log(CONFIG.providers.storage)
-      const response = await this.client.upload(params).promise()
+      // Upload do arquivo
+      await this.client.upload(params).promise()
+
+      // Gerar URL pré-assinada com validade longa (1 semana)
+      const signedUrl = await this.client.getSignedUrlPromise('getObject', {
+        Bucket: CONFIG.providers.storage.bucket as string,
+        Key: key,
+        Expires: 604800, // 1 semana em segundos
+      })
+
       return {
-        url: response.Location,
+        url: signedUrl,
         key,
       }
     } catch (error) {
       console.error('Upload error:', error)
       throw new Error('Erro ao fazer upload do arquivo')
+    }
+  }
+
+  // Também podemos adicionar um método para obter URL pré-assinada quando precisarmos
+  async getSignedUrl(key: string): Promise<string> {
+    try {
+      const signedUrl = await this.client.getSignedUrlPromise('getObject', {
+        Bucket: CONFIG.providers.storage.bucket as string,
+        Key: key,
+        Expires: 604800, // 1 semana em segundos
+      })
+      return signedUrl
+    } catch (error) {
+      console.error('Error getting signed URL:', error)
+      throw new Error('Erro ao obter URL assinada')
     }
   }
 

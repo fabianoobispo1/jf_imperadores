@@ -112,7 +112,7 @@ export const PerfilForm: React.FC = () => {
         // Atualiza os valores do formulário com os dados da API
         setPasswordHash(response.password)
         setEmailAtual(response.email)
-        console.log('')
+        console.log('Inicio')
         console.log(response)
         form.reset({
           id: response._id,
@@ -216,6 +216,52 @@ export const PerfilForm: React.FC = () => {
     setLoading(false)
   }
 
+  // Adicione esta função ao componente PerfilForm
+  const handleImageChange = async (imageData: { url: string; key: string } | null) => {
+    if (!form.getValues('id')) return
+
+    if (imageData) {
+      //add img
+      console.log('add img')
+    } else {
+      //remove img
+      console.log('remove img')
+    }
+
+    /*    try {
+      // Atualiza o formulário com a nova imagem
+      form.setValue('image', imageData)
+
+      // Chama a mutação para atualizar apenas a imagem no servidor
+      await fetchMutation(api.user.UpdateUser, {
+        userId: form.getValues('id') as Id<'user'>,
+        image: imageData.url,
+        image_key: imageData.key,
+        // Mantenha os outros campos do usuário como estão
+        email: form.getValues('email'),
+        nome: form.getValues('nome'),
+        data_nascimento: form.getValues('data_nascimento')
+          ? new Date(form.getValues('data_nascimento')).getTime()
+          : 0,
+        provider: form.getValues('provider'),
+        password: '', // Não atualiza a senha
+      })
+
+      toast.success('Imagem atualizada', {
+        description: 'Sua foto de perfil foi atualizada com sucesso.',
+        duration: 3000,
+        richColors: true,
+      })
+    } catch (error) {
+      console.error('Erro ao atualizar imagem:', error)
+      toast.error('Erro', {
+        description: 'Não foi possível atualizar a imagem. Tente novamente.',
+        duration: 3000,
+        richColors: true,
+      })
+    } */
+  }
+
   if (loadingData) {
     return <Spinner />
   }
@@ -244,7 +290,12 @@ export const PerfilForm: React.FC = () => {
                             }
                           : null
                       }
-                      onChange={field.onChange}
+                      onChange={(imageData) => {
+                        // Primeiro atualiza o campo no formulário
+                        field.onChange(imageData)
+                        // Depois envia para o servidor
+                        handleImageChange(imageData)
+                      }}
                       disabled={loading}
                     />
                   </FormControl>
