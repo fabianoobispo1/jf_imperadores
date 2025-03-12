@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { ImageUpload } from '@/app/(dashboard)/dashboard/perfil/image-upload'
 
 const formSchema = z
   .object({
@@ -35,8 +36,14 @@ const formSchema = z
         required_error: 'A data de nascimento precisa ser preenchida.',
       })
     ),
+    image: z
+      .object({
+        url: z.string().optional(),
+        key: z.string().optional(),
+      })
+      .nullable()
+      .optional(),
     email: z.string().email({ message: 'Digite um email valido.' }),
-    image: z.string().optional(),
     provider: z.string().optional(),
     oldPassword: z.string().min(8, { message: 'Senha obrigatória, min 8' }).optional(),
     password: z.string().min(8, { message: 'Senha obrigatória, min 8' }).optional(),
@@ -77,7 +84,7 @@ export const PerfilForm: React.FC = () => {
     nome: '',
     data_nascimento: undefined,
     email: '',
-    imagee: '',
+    image: null,
     oldPassword: '',
     password: '',
     confirmPassword: '',
@@ -119,7 +126,12 @@ export const PerfilForm: React.FC = () => {
           data_nascimento: response.data_nascimento
             ? new Date(response.data_nascimento)
             : undefined,
-          image: response.image ?? '',
+          image: response.image
+            ? {
+                url: response.image,
+                key: response.image_key,
+              }
+            : null,
           oldPassword: '',
           password: '',
           confirmPassword: '',
@@ -187,7 +199,7 @@ export const PerfilForm: React.FC = () => {
     await fetchMutation(api.user.UpdateUser, {
       userId: data.id as Id<'user'>,
       email: data.email,
-      image: data.image,
+      /* image: data.image, */
       nome: data.nome,
       data_nascimento: timestamp,
       provider: data.provider,
@@ -209,49 +221,6 @@ export const PerfilForm: React.FC = () => {
     setLoading(false)
   }
 
-  const removeImage = async () => {
-    removeFileFromUploadthing(imgKey)
-    setImg('')
-    setImgKey('')
-    form.setValue('image', '')
-  }
-
-  async function removeFileFromUploadthing(fileKey: string) {
-    const imageKey = fileKey.substring(fileKey.lastIndexOf('/') + 1)
-
-    fetch('/api/uploadthing/remove', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ imageKey }),
-    })
-      .then(async (res) => {
-        if (res.ok) {
-          toast.success('Ok', {
-            description: 'Imagem removida.',
-            duration: 3000,
-            richColors: true,
-          })
-        } else {
-          const errorData = await res.json()
-          toast.error('Error', {
-            description: errorData.message || 'Something went wrong',
-            duration: 3000,
-            richColors: true,
-          })
-        }
-      })
-      .catch(() => {
-        toast.error('Error', {
-          description: 'Something went wrong',
-          duration: 3000,
-          richColors: true,
-        })
-      })
-      .finally(() => {})
-  }
-
   if (loadingData) {
     return <Spinner />
   }
@@ -264,28 +233,30 @@ export const PerfilForm: React.FC = () => {
           className="w-full space-y-8"
           autoComplete="off"
         >
-          <div className="flex flex-col gap-4  md:grid md:grid-cols-2 ">
-            <Avatar className="h-32 w-32">
-              <AvatarImage src={img || ''} alt="Avatar" />
-              <AvatarFallback>{form.getValues('nome')?.[0] || '?'}</AvatarFallback>
-            </Avatar>
-          </div>
-
           <div className="flex flex-col gap-4 md:grid md:grid-cols-2">
             <FormField
               control={form.control}
               name="image"
               render={({ field }) => (
-                <FormItem className=" flex-col hidden">
-                  <FormLabel>Imagem</FormLabel>
+                <FormItem className="px-2">
                   <FormControl>
-                    <Input disabled={loading} placeholder="URL da imagem" {...field} />
+                    <ImageUpload
+                      value={
+                        field.value
+                          ? {
+                              url: field.value.url || '',
+                              key: field.value.key || '',
+                            }
+                          : null
+                      }
+                      onChange={field.onChange}
+                      disabled={loading}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="id"
