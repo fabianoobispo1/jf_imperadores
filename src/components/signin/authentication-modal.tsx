@@ -106,7 +106,7 @@ export default function AuthenticationModal() {
             {/*   <h1 className="text-3xl font-bold tracking-tight pb-8">
               JF imperadores
             </h1> */}
-            <Image src={'/logo.png'} alt="logo" width={250} height={250} />
+            {/* <Image src={'/logo.png'} alt="logo" width={250} height={250} /> */}
             <h1 className="text-2xl font-semibold tracking-tight">
               {button === 'Login' ? 'Criar uma conta' : 'Realizar login'}
             </h1>
