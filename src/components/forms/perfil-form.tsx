@@ -21,8 +21,6 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useUploadFile } from '@/hooks/use-upload-file'
-import { FileUploaderButton } from '@/components/file-uploader-button'
 import { toast } from 'sonner'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -63,10 +61,6 @@ const formSchema = z
 type ProductFormValues = z.infer<typeof formSchema>
 
 export const PerfilForm: React.FC = () => {
-  const { onUpload, progresses, isUploading, uploadedFiles } = useUploadFile('imageUploader', {
-    defaultUploadedFiles: [],
-  })
-
   const { data: session } = useSession()
   const [loadingData, setLoadingData] = useState(true)
   const [bloqueioProvider, setBloqueioProvider] = useState(false)
@@ -148,14 +142,6 @@ export const PerfilForm: React.FC = () => {
       }
     }
   }, [setSessionId, session, setiscarregou, carregou, loadUser])
-
-  useEffect(() => {
-    if (uploadedFiles.length > 0) {
-      setImg(uploadedFiles[0]?.url || '')
-      setImgKey(uploadedFiles[0]?.key || '')
-      form.setValue('image', uploadedFiles[0]?.url || '') // Exemplo de atualização do campo de imagem
-    }
-  }, [uploadedFiles, form])
 
   const onSubmit = async (data: ProductFormValues) => {
     setLoading(true)
@@ -283,25 +269,6 @@ export const PerfilForm: React.FC = () => {
               <AvatarImage src={img || ''} alt="Avatar" />
               <AvatarFallback>{form.getValues('nome')?.[0] || '?'}</AvatarFallback>
             </Avatar>
-            {bloqueioProvider ? (
-              <></>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {isUploading ? (
-                  <Spinner />
-                ) : (
-                  <FileUploaderButton
-                    progresses={progresses}
-                    onUpload={onUpload}
-                    disabled={isUploading}
-                  />
-                )}
-
-                <Button variant={'ghost'} className="border-2" type="button" onClick={removeImage}>
-                  Remover Imagem
-                </Button>
-              </div>
-            )}
           </div>
 
           <div className="flex flex-col gap-4 md:grid md:grid-cols-2">
