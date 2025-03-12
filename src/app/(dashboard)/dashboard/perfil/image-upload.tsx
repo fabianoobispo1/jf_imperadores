@@ -15,7 +15,8 @@ interface ImageUploadProps {
 export const ImageUpload = ({ value, onChange, disabled }: ImageUploadProps) => {
   const [loading, setLoading] = useState(false)
   const storage = new MinioStorageProvider()
-
+  console.log('componente imagem upload')
+  console.log('componente imagem upload')
   const removeOldImage = async () => {
     if (value?.key) {
       try {
@@ -38,7 +39,6 @@ export const ImageUpload = ({ value, onChange, disabled }: ImageUploadProps) => 
         const file = e.target.files[0]
         const result = await storage.upload(file)
         onChange(result)
-
         toast.success('Ok', {
           description: 'Imagem atualizada com sucesso!',
           duration: 3000,

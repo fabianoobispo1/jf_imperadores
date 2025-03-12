@@ -73,8 +73,6 @@ export const PerfilForm: React.FC = () => {
   const [bloqueioProvider, setBloqueioProvider] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sessionId, setSessionId] = useState('')
-  const [img, setImg] = useState('')
-  const [imgKey, setImgKey] = useState('')
   const [passwordHash, setPasswordHash] = useState('1')
   const [emailAtual, setEmailAtual] = useState('')
   const [carregou, setiscarregou] = useState(false)
@@ -97,15 +95,12 @@ export const PerfilForm: React.FC = () => {
 
   const loadUser = useCallback(async () => {
     setLoadingData(true)
-    console.log('entrou no loadUser')
-    console.log(sessionId)
+
     if (session) {
-      console.log(session.user.id)
       try {
         const response = await fetchQuery(api.user.getById, {
           userId: session.user.id as Id<'user'>,
         })
-        console.log(response)
         if (!response) {
           console.error('Erro ao buscar os dados do usuário:')
           return
@@ -115,10 +110,10 @@ export const PerfilForm: React.FC = () => {
           setBloqueioProvider(true)
         }
         // Atualiza os valores do formulário com os dados da API
-        setImg(response.image ?? '')
-        setImgKey(response.image_key ?? '')
         setPasswordHash(response.password)
         setEmailAtual(response.email)
+        console.log('')
+        console.log(response)
         form.reset({
           id: response._id,
           nome: response.nome,
@@ -199,11 +194,11 @@ export const PerfilForm: React.FC = () => {
     await fetchMutation(api.user.UpdateUser, {
       userId: data.id as Id<'user'>,
       email: data.email,
-      /* image: data.image, */
       nome: data.nome,
       data_nascimento: timestamp,
       provider: data.provider,
-      image_key: imgKey,
+      image: data.image?.url,
+      image_key: data.image?.key,
       password,
     })
 
