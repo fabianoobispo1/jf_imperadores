@@ -18,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <SidebarProvider>
       <AppSidebar />
       <main className="w-full">
-        {/*       <SidebarTrigger title="Menu" /> */}
+        <SidebarTrigger title="Menu" />
         {children}
       </main>
     </SidebarProvider>
