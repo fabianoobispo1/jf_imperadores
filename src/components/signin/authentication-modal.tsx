@@ -48,12 +48,10 @@ export default function AuthenticationModal() {
     if (emailExists) {
       // verifica se logou com algum provider
       if (emailExists.provider !== 'credentials') {
-        toast('Erro', {
-          style: {
-            background: 'red',
-            color: 'white',
-          },
+        toast.error('Erro', {
           description: 'Sem senha para resetar',
+          duration: 3000,
+          richColors: true,
         })
         setOpen(false)
         return
