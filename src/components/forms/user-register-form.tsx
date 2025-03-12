@@ -59,12 +59,10 @@ export default function UserRegisterForm({ setButton }: UserRegisterFormProps) {
     })
 
     if (existingUserByEmail) {
-      toast('Erro', {
-        style: {
-          background: 'red',
-          color: 'white',
-        },
+      toast.error('Erro', {
         description: 'Email já cadastrado.',
+        duration: 3000,
+        richColors: true,
       })
       setLoading(false)
       return
@@ -81,19 +79,19 @@ export default function UserRegisterForm({ setButton }: UserRegisterFormProps) {
       })
 
       if (!user) {
-        toast('Erro', {
-          style: {
-            background: 'red',
-            color: 'white',
-          },
+        toast.error('Erro', {
           description: 'Usuario nao criado.',
+          duration: 3000,
+          richColors: true,
         })
         setLoading(false)
         return
       }
 
-      toast('Ok', {
+      toast.success('Ok', {
         description: 'Usuário criado com sucesso. Por favor, faça login.',
+        duration: 3000,
+        richColors: true,
       })
 
       setLoading(false)
@@ -101,12 +99,10 @@ export default function UserRegisterForm({ setButton }: UserRegisterFormProps) {
     } catch (error) {
       console.error(error)
 
-      toast('Erro', {
-        style: {
-          background: 'red',
-          color: 'white',
-        },
+      toast.error('Erro', {
         description: 'Ocorreu um erro ao criar o usuário.',
+        duration: 3000,
+        richColors: true,
       })
       setLoading(false)
     }

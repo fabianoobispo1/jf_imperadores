@@ -53,17 +53,22 @@ export default function UserAuthForm() {
 
     if (result?.error) {
       // Exibe o toast com a mensagem de erro
-      toast('Erro', {
-        style: {
-          background: 'red',
-          color: 'white',
-        },
+      toast.error('Erro', {
         description: 'Credenciais inválidas. Verifique seu email e senha.',
+        duration: 3000,
+        richColors: true,
       })
+      /* toast.warning('Erro', {
+        description: 'Credenciais inválidas. Verifique seu email e senha.',
+        duration: 3000,
+           richColors: true,
+      }) */
     } else {
       // Exibe um toast de sucesso ou redireciona para uma página
-      toast('Ok', {
+      toast.success('Ok', {
         description: 'Login bem-sucedido!',
+        duration: 3000,
+        richColors: true,
       })
       redirect('/dashboard')
     }
