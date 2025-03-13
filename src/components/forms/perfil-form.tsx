@@ -221,45 +221,18 @@ export const PerfilForm: React.FC = () => {
     if (!form.getValues('id')) return
 
     if (imageData) {
-      //add img
-      console.log('add img')
-    } else {
-      //remove img
-      console.log('remove img')
-    }
-
-    /*    try {
-      // Atualiza o formulário com a nova imagem
-      form.setValue('image', imageData)
-
-      // Chama a mutação para atualizar apenas a imagem no servidor
-      await fetchMutation(api.user.UpdateUser, {
+      await fetchMutation(api.user.UpdateUserImg, {
         userId: form.getValues('id') as Id<'user'>,
         image: imageData.url,
         image_key: imageData.key,
-        // Mantenha os outros campos do usuário como estão
-        email: form.getValues('email'),
-        nome: form.getValues('nome'),
-        data_nascimento: form.getValues('data_nascimento')
-          ? new Date(form.getValues('data_nascimento')).getTime()
-          : 0,
-        provider: form.getValues('provider'),
-        password: '', // Não atualiza a senha
       })
-
-      toast.success('Imagem atualizada', {
-        description: 'Sua foto de perfil foi atualizada com sucesso.',
-        duration: 3000,
-        richColors: true,
+    } else {
+      await fetchMutation(api.user.UpdateUserImg, {
+        userId: form.getValues('id') as Id<'user'>,
+        image: '',
+        image_key: '',
       })
-    } catch (error) {
-      console.error('Erro ao atualizar imagem:', error)
-      toast.error('Erro', {
-        description: 'Não foi possível atualizar a imagem. Tente novamente.',
-        duration: 3000,
-        richColors: true,
-      })
-    } */
+    }
   }
 
   if (loadingData) {

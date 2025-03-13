@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { auth } from '@/auth/auth'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
+import { ModeSwitcherTheme } from '@/components/mode-switcher-theme'
 
 export const metadata: Metadata = {
   title: 'JF Imperadores',
@@ -17,10 +18,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="w-full">
-        <SidebarTrigger title="Menu" />
-        {children}
-      </main>
+      <div className="flex flex-col flex-1">
+        <div className="pt-4 px-2 flex items-center justify-between">
+          <SidebarTrigger title="Menu" />
+          <ModeSwitcherTheme />
+        </div>
+        <main className="w-full">{children}</main>
+      </div>
     </SidebarProvider>
   )
 }
