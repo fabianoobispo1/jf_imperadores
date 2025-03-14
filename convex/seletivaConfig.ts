@@ -56,3 +56,21 @@ export const updateConfig = mutation({
     await ctx.db.patch(id, rest);
   },
 });
+
+export const deleteConfig = mutation({
+  args: {
+    seletivaConfigId: v.id("seletivaConfig"), // ID do seletivaConfig a ser removido
+  },
+  handler: async ({ db }, { seletivaConfigId }) => {
+    // Buscar o seletivaConfig para garantir que ele existe antes de remover
+    const seletivaConfig = await db.get(seletivaConfigId);
+    if (!seletivaConfig) {
+      throw new Error("seletivaConfig não encontrado");
+    }
+
+    // Remover o seletivaConfig do banco de dados
+    await db.delete(seletivaConfigId);
+
+    return { success: true, message: "seletivaConfig removido com sucesso" }; // Resposta de confirmação
+  },
+});
