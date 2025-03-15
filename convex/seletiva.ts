@@ -181,3 +181,16 @@ export const getAllApproved = query({
     return seletivas
   },
 })
+
+// Buscar seletivas com imagens que não estão no MinIO
+export const getSeletivasWithNonMinioImages = query({
+  args: {},
+  handler: async (ctx) => {
+    const seletivas = await ctx.db
+      .query('seletiva')
+      .filter((q) => q.and(q.neq(q.field('img_link'), ''), q.neq(q.field('img_link'), null)))
+      .collect()
+
+    return seletivas
+  },
+})
