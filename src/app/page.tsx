@@ -1,5 +1,6 @@
-import { ModeSwitcherTheme } from '@/components/mode-switcher-theme'
 import { Metadata } from 'next'
+
+import Redirecionador from '@/components/redirecionador'
 
 export const metadata: Metadata = {
   title: 'JF Imperadores',
@@ -11,8 +12,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <div className="flex h-screen items-center justify-center ">
-      Inicial
-      <ModeSwitcherTheme />
+      <Redirecionador link={'https://www.instagram.com/jfimperadores'} />
     </div>
   )
 }
