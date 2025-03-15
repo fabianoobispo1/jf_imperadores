@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { fetchQuery } from 'convex/nextjs'
+import { fetchMutation, fetchQuery } from 'convex/nextjs'
 
 import { DataTable } from '@/components/ui/data-table'
 import type { Id } from '@/convex/_generated/dataModel'
@@ -30,6 +30,7 @@ interface Seletivas {
   equipamento: number
   aprovado?: boolean
   img_link?: string
+  img_key?: string
   cod_seletiva?: string
 }
 
@@ -56,16 +57,13 @@ export const TryoutExercicios: React.FC = () => {
   return (
     <>
       <div className="flexrow flex items-start justify-between gap-4 ">
-        <Heading
-          title="Seletiva Exercicios"
-          description="Exercicios feitos no dia da seletiva"
-        />
+        <Heading title="Seletiva Exercicios" description="Exercicios feitos no dia da seletiva" />
       </div>
 
       <div
         className={cn(
           'space-y-8 w-screen pr-8 ',
-          open ? 'md:max-w-[calc(100%-16rem)] ' : 'md:max-w-[calc(100%-5rem)] ',
+          open ? 'md:max-w-[calc(100%-16rem)] ' : 'md:max-w-[calc(100%-5rem)] '
         )}
       >
         <DataTable

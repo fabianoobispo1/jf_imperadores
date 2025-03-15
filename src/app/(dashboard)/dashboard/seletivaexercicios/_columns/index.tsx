@@ -1,16 +1,12 @@
 'use client'
-
 import { ColumnDef } from '@tanstack/react-table'
 import { fetchMutation } from 'convex/nextjs'
-import Image from 'next/image'
-import { useCallback, useState } from 'react'
-import { Upload } from 'lucide-react'
 
 import type { Id } from '@/convex/_generated/dataModel'
 import { api } from '@/convex/_generated/api'
-import { Button } from '@/components/ui/button'
 
 import ActionCell from './ActionCell'
+import { ImageUploadSeletiva } from './image-upload-seletiva'
 
 interface Seletivas {
   _id: Id<'seletiva'>
@@ -30,6 +26,7 @@ interface Seletivas {
   equipamento: number
   aprovado?: boolean
   img_link?: string
+  img_key?: string
   cod_seletiva?: string
 }
 
@@ -39,79 +36,44 @@ export const transactionColumns = (onListUpdate: () => Promise<void>): ColumnDef
     header: 'Foto',
     cell: ({ row }) => {
       const seletiva = row.original
-      const ImageCell = () => {
-        const [isUploading, setIsUploading] = useState(false)
-        const startUpload = useCallback(async (files: File[]) => {
-          const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: JSON.stringify({ files }),
-          })
-          return response.json()
-        }, [])
-        const handleFileUpload = useCallback(
-          async (file: File) => {
-            if (isUploading) return
-            setIsUploading(true)
 
-            try {
-              const uploadResult = await startUpload([file])
-              if (uploadResult && uploadResult[0]) {
+      // Cria um ID único para este componente de upload baseado no ID da seletiva
+      const uploadId = `upload-${seletiva._id}`
+
+      return (
+        <div key={uploadId}>
+          <ImageUploadSeletiva
+            seletivaId={seletiva._id as Id<'seletiva'>}
+            value={{
+              url: seletiva.img_link || '',
+              key: seletiva.img_key || '',
+            }}
+            onChange={async (imageData) => {
+              console.log('Atualizando imagem para seletiva:', seletiva._id, seletiva.nome)
+
+              if (imageData) {
                 await fetchMutation(api.seletiva.updateImg, {
-                  id: seletiva._id,
-                  img_link: uploadResult[0].url,
+                  id: seletiva._id as Id<'seletiva'>,
+                  img_link: imageData.url,
+                  img_key: imageData.key,
                 })
-                await onListUpdate()
+              } else {
+                await fetchMutation(api.seletiva.updateImg, {
+                  id: seletiva._id as Id<'seletiva'>,
+                  img_link: '',
+                  img_key: '',
+                })
               }
-            } catch (error) {
-              console.error('Upload failed:', error)
-            } finally {
-              setIsUploading(false)
-            }
-          },
-          [isUploading, startUpload]
-        )
 
-        return (
-          <div className="flex items-center gap-2">
-            {seletiva.img_link ? (
-              <Image
-                src={seletiva.img_link}
-                alt={seletiva.nome}
-                className="h-20 w-20 rounded-full object-cover"
-                width={80}
-                height={80}
-              />
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-20 h-20 rounded-full"
-                disabled={isUploading}
-                onClick={() => document.getElementById('file-upload')?.click()}
-              >
-                {isUploading ? (
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                ) : (
-                  <Upload className="h-6 w-6" />
-                )}
-                <input
-                  id="file-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFileUpload(file)
-                  }}
-                  className="hidden"
-                />
-              </Button>
-            )}
-          </div>
-        )
-      }
-      return <ImageCell />
+              // Atualizar a lista após o upload
+              await onListUpdate()
+            }}
+          />
+        </div>
+      )
     },
   },
+
   {
     accessorKey: 'nome',
     header: 'Nome',
