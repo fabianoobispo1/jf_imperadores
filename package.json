@@ -51,7 +51,7 @@
     "postcss": "^8.5.3",
     "react": "19.0.0",
     "react-chartjs-2": "^5.3.0",
-    "react-day-picker": "^8.10.1",
+    "react-day-picker": "^9.6.2",
     "react-hook-form": "^7.54.2",
     "react-number-format": "^5.4.3",
     "react-scroll-parallax": "^3.4.5",
