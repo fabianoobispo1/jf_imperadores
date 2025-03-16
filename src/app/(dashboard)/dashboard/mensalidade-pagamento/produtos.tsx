@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { useSidebar } from '@/components/ui/sidebar'
 
 import { api } from '../../../../../convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 
 interface Product {
   id: string
@@ -21,6 +22,19 @@ interface Product {
   nome: string
   preco: number
   default_price: string
+}
+interface Mensalidade {
+  _id: Id<'mensalidade'>
+  _creationTime: number
+  email: string
+  tipo: 'avulsa' | 'recorrente'
+  valor: number
+  customer: string
+  id_payment_stripe: string
+  data_pagamento: number
+  mes_referencia: string
+  data_cancelamento: number
+  cancelado: boolean
 }
 
 export const Produtos = () => {
@@ -32,6 +46,7 @@ export const Produtos = () => {
   const [isAtleta, setIsAtleta] = useState(false)
   const [hasPaidThisMonth, setHasPaidThisMonth] = useState(false)
   const [tipoMensalidade, setTipoMensalidade] = useState('')
+  const [mensalidadesPagas, setMensalidadesPagas] = useState<Mensalidade[]>([])
 
   const fetchProducts = async () => {
     try {
@@ -81,6 +96,13 @@ export const Produtos = () => {
         setHasPaidThisMonth(!!mensalidade)
         setTipoMensalidade(mensalidade?.tipo || '')
 
+        // Buscar todas as mensalidades pagas pelo atleta
+        const todasMensalidades = await fetchQuery(api.mensalidade.getAllByEmail, {
+          email: session.user.email,
+        })
+
+        setMensalidadesPagas(todasMensalidades || [])
+
         setIsAtleta(true)
         fetchProducts()
         setLoading(false)
@@ -127,7 +149,7 @@ export const Produtos = () => {
   return (
     <ScrollArea
       className={cn(
-        'space-y-8 w-screen pr-8 md:pr-1  h-[calc(100vh-220px)]',
+        'space-y-8 w-full pr-8 md:pr-1  h-[calc(100vh-220px)] ',
         open ? 'md:max-w-[calc(100%-16rem)] ' : 'md:max-w-[calc(100%-5rem)] '
       )}
     >
@@ -136,6 +158,66 @@ export const Produtos = () => {
           <Spinner />
         ) : (
           <>
+            {isAtleta && mensalidadesPagas.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold mb-4">Mensalidades Pagas</h2>
+                <div className="bg-white rounded-lg shadow overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Tipo
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Valor
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Data de Pagamento
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Mês de Referência
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {mensalidadesPagas.map((mensalidade: any) => (
+                        <tr key={mensalidade._id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {mensalidade.tipo === 'avulsa' ? 'Avulsa' : 'Recorrente'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(mensalidade.valor)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(mensalidade.data_pagamento).toLocaleDateString('pt-BR')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {mensalidade.mes_referencia}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {mensalidade.cancelado ? (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Cancelado
+                              </span>
+                            ) : (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Ativo
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}{' '}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
             {isAtleta ? (
               <>
                 {hasPaidThisMonth && (
@@ -173,8 +255,8 @@ export const Produtos = () => {
             ) : (
               <div>
                 <p>
-                  você não esta cadastrado como atleta ou Seu email de cadastro não e o mesmo da
-                  lista de atletas.{' '}
+                  você não esta cadastrado como atleta ou seu email de cadastro não e o mesmo da
+                  lista de atletas.
                 </p>
                 <p> verifique com um administrador sua situação.</p>
               </div>

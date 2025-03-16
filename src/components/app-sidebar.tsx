@@ -60,6 +60,11 @@ const items = [
     icon: CircleDollarSign,
   },
   {
+    title: 'Mensalidades - Pagamento',
+    url: '/dashboard/mensalidade-pagamento',
+    icon: User,
+  },
+  {
     title: 'Perfil',
     url: '/dashboard/perfil',
     icon: UserPen,
@@ -87,7 +92,7 @@ const itemsAdm = [
     icon: MessageCircleMore,
   },
   {
-    title: 'Mensalidades',
+    title: 'Mensalidades - Cadastro',
     url: '/dashboard/mensalidades',
     icon: User,
   },

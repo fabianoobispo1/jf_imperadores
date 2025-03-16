@@ -56,6 +56,7 @@
     "react-scroll-parallax": "^3.4.5",
     "resend": "^4.1.2",
     "sonner": "^2.0.1",
+    "stripe": "^17.7.0",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2"

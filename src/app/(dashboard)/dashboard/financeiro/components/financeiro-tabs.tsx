@@ -11,14 +11,9 @@ import { TransacoesLista } from './transacoes-lista'
 export function FinanceiroTabs() {
   const { open } = useSidebar()
   return (
-    <div
-      className={cn(
-        'space-y-4 w-screen pr-2 ',
-        open ? 'md:max-w-[calc(100%-18rem)] ' : 'md:max-w-[calc(100%-7rem)] '
-      )}
-    >
+    <div className="space-y-8">
       <ScrollArea className="h-[calc(100vh-250px)] w-full">
-        <Tabs defaultValue="dashboard" className="w-full">
+        <Tabs defaultValue="dashboard" className="w-[300px] sm:w-full">
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="transacoes">Transações</TabsTrigger>

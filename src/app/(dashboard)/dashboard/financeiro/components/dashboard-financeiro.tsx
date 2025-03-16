@@ -28,7 +28,7 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend,
+  Legend
 )
 
 const options = {
@@ -43,21 +43,17 @@ const options = {
 export function DashboardFinanceiro() {
   const balancoMensal = useQuery(api.financas.getBalancoMensal, {})
 
-  const transacoesPorCategoria = useQuery(
-    api.financas.getTransacoesPorCategoria,
-    {},
-  )
+  const transacoesPorCategoria = useQuery(api.financas.getTransacoesPorCategoria, {})
 
   const historicoMensal = useQuery(api.financas.getHistoricoMensal, {})
 
-  const saldoTotal =
-    (balancoMensal?.receitas || 0) - (balancoMensal?.despesas || 0)
+  const saldoTotal = (balancoMensal?.receitas || 0) - (balancoMensal?.despesas || 0)
 
   return (
-    <div className="space-y-8 mr-4">
+    <div className="space-y-8 mr-4 relative">
       {/* Cards principais */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-4 ">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Saldo Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -66,7 +62,7 @@ export function DashboardFinanceiro() {
             <div
               className={cn(
                 'text-2xl font-bold',
-                saldoTotal >= 0 ? 'text-green-600' : 'text-red-600',
+                saldoTotal >= 0 ? 'text-green-600' : 'text-red-600'
               )}
             >
               {new Intl.NumberFormat('pt-BR', {
@@ -79,9 +75,7 @@ export function DashboardFinanceiro() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Receitas do Mês
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Receitas do Mês</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -96,9 +90,7 @@ export function DashboardFinanceiro() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Despesas do Mês
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Despesas do Mês</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
@@ -113,15 +105,11 @@ export function DashboardFinanceiro() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total de Transações
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Transações</CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {transacoesPorCategoria?.total || 0}
-            </div>
+            <div className="text-2xl font-bold">{transacoesPorCategoria?.total || 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -137,9 +125,8 @@ export function DashboardFinanceiro() {
               options={options}
               data={{
                 labels:
-                  historicoMensal?.map((h) =>
-                    format(new Date(h.mes), 'MMM', { locale: ptBR }),
-                  ) || [],
+                  historicoMensal?.map((h) => format(new Date(h.mes), 'MMM', { locale: ptBR })) ||
+                  [],
                 datasets: [
                   {
                     label: 'Receitas',
@@ -169,14 +156,11 @@ export function DashboardFinanceiro() {
             <Bar
               options={options}
               data={{
-                labels:
-                  transacoesPorCategoria?.categorias.map((c) => c.nome) || [],
+                labels: transacoesPorCategoria?.categorias.map((c) => c.nome) || [],
                 datasets: [
                   {
                     label: 'Total de Transações por Categoria',
-                    data:
-                      transacoesPorCategoria?.categorias.map((c) => c.total) ||
-                      [],
+                    data: transacoesPorCategoria?.categorias.map((c) => c.total) || [],
                     backgroundColor: [
                       'rgba(53, 162, 235, 0.8)',
                       'rgba(75, 192, 192, 0.8)',
