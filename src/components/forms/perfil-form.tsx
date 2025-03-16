@@ -24,17 +24,27 @@ import { toast } from 'sonner'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { ImageUpload } from '@/app/(dashboard)/dashboard/perfil/image-upload'
+import { DatePickerSimple } from '../date-picker-simple'
 
 const formSchema = z
   .object({
     id: z.string(),
     nome: z.string().min(3, { message: 'Nome precisa ser preenchido.' }),
     data_nascimento: z.preprocess(
-      (val) => (val === null ? undefined : val), // Transforma null em undefined
-      z.date({
-        required_error: 'A data de nascimento precisa ser preenchida.',
-      })
+      (val) => {
+        // Transforma null em undefined
+        if (val === null) return undefined
+        // Se já for um número (timestamp), mantém como está
+        if (typeof val === 'number') return val
+        return undefined
+      },
+      z
+        .number({
+          required_error: 'A data de nascimento precisa ser preenchida.',
+        })
+        .optional()
     ),
+
     image: z
       .object({
         url: z.string().optional(),
@@ -44,8 +54,19 @@ const formSchema = z
       .optional(),
     email: z.string().email({ message: 'Digite um email valido.' }),
     provider: z.string().optional(),
-    oldPassword: z.string().min(8, { message: 'Senha obrigatória, min 8' }).optional(),
-    password: z.string().min(8, { message: 'Senha obrigatória, min 8' }).optional(),
+
+    oldPassword: z.union([
+      // Opção 1: string vazia é válida
+      z.literal(''),
+      // Opção 2: string com pelo menos 8 caracteres
+      z.string().min(8, 'A senha deve ter no mínimo 8 caracteres'),
+    ]),
+    password: z.union([
+      // Opção 1: string vazia é válida
+      z.literal(''),
+      // Opção 2: string com pelo menos 8 caracteres
+      z.string().min(8, 'A senha deve ter no mínimo 8 caracteres'),
+    ]),
     confirmPassword: z.string().optional(),
   })
   .refine((data) => !data.oldPassword || (data.oldPassword && data.password), {
@@ -118,7 +139,7 @@ export const PerfilForm: React.FC = () => {
           nome: response.nome,
           email: response.email,
           data_nascimento: response.data_nascimento
-            ? new Date(response.data_nascimento)
+            ? new Date(response.data_nascimento).getTime()
             : undefined,
           image: response.image
             ? {
@@ -138,7 +159,6 @@ export const PerfilForm: React.FC = () => {
       }
     }
   }, [sessionId, session, form])
-
   useEffect(() => {
     if (session) {
       if (!carregou) {
@@ -194,7 +214,7 @@ export const PerfilForm: React.FC = () => {
       userId: data.id as Id<'user'>,
       email: data.email,
       nome: data.nome,
-      data_nascimento: timestamp,
+      data_nascimento: data.data_nascimento,
       provider: data.provider,
       image: data.image?.url,
       image_key: data.image?.key,
@@ -292,7 +312,7 @@ export const PerfilForm: React.FC = () => {
               control={form.control}
               name="nome"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem className="flex flex-col px-1">
                   <FormLabel>Nome</FormLabel>
                   <FormControl>
                     <Input disabled={loading} placeholder="Nome" {...field} />
@@ -305,7 +325,7 @@ export const PerfilForm: React.FC = () => {
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem className="flex flex-col px-1">
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input disabled={loading || bloqueioProvider} placeholder="Email" {...field} />
@@ -319,22 +339,16 @@ export const PerfilForm: React.FC = () => {
               control={form.control}
               name="data_nascimento"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col px-1">
                   <FormLabel>Data Nascimento</FormLabel>
                   <FormControl>
-                    <Input
-                      type="date"
-                      disabled={loading}
-                      {...field}
-                      value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                      onChange={(e) => {
-                        // Converte a string da data para um objeto Date
-                        const date = new Date(e.target.value)
-                        // Corrige fuso horário para evitar problemas de data
-                        date.setHours(12, 0, 0, 0)
-                        // Atualiza o campo com o objeto Date
-                        field.onChange(date)
+                    <DatePickerSimple
+                      timestamp={field.value} // Já é um timestamp (number)
+                      setTimestamp={(newTimestamp) => {
+                        // Atualiza diretamente o campo com o timestamp
+                        field.onChange(newTimestamp)
                       }}
+                      placeholder="Selecione a data de nascimento"
                     />
                   </FormControl>
                   <FormMessage />
@@ -350,7 +364,7 @@ export const PerfilForm: React.FC = () => {
                   control={form.control}
                   name="oldPassword"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col px-1">
                       <FormLabel>Senha antiga</FormLabel>
                       <FormControl>
                         <Input
@@ -370,7 +384,7 @@ export const PerfilForm: React.FC = () => {
                   control={form.control}
                   name="password"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col px-1">
                       <FormLabel>Nova senha</FormLabel>
                       <FormControl>
                         <Input
@@ -389,7 +403,7 @@ export const PerfilForm: React.FC = () => {
                   control={form.control}
                   name="confirmPassword"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col px-1">
                       <FormLabel>Comfirmar nova senha</FormLabel>
                       <FormControl>
                         <Input
