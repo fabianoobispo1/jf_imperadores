@@ -21,6 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 import { api } from '../../../convex/_generated/api'
+import { DatePickerSimple } from '../date-picker-simple'
 
 // Definir as opções de setor com seus respectivos valores numéricos
 const SETOR_OPTIONS = [
@@ -80,10 +81,18 @@ const formSchema = z
   .object({
     nome: z.string().min(3, { message: 'Nome precisa ser preenchido.' }),
     data_nascimento: z.preprocess(
-      (val) => (val === null ? undefined : val), // Transforma null em undefined
-      z.date({
-        required_error: 'A data de nascimento precisa ser preenchida.',
-      })
+      (val) => {
+        // Transforma null em undefined
+        if (val === null) return undefined
+        // Se já for um número (timestamp), mantém como está
+        if (typeof val === 'number') return val
+        return undefined
+      },
+      z
+        .number({
+          required_error: 'A data de nascimento precisa ser preenchida.',
+        })
+        .optional()
     ),
 
     email: z.string().email({ message: 'Digite um email valido.' }),
@@ -123,6 +132,16 @@ const formSchema = z
     {
       message: 'Equipe anterior precisa ser preenchida quando possui experiência.',
       path: ['equipe_anterior'], // Isso faz a mensagem aparecer no campo correto
+    }
+  )
+  .refine(
+    (data) => {
+      if (!data.data_nascimento) return true
+      return data.data_nascimento <= Date.now()
+    },
+    {
+      message: 'A data de nascimento não pode ser uma data futura.',
+      path: ['data_nascimento'],
     }
   )
 
@@ -194,7 +213,6 @@ export const SeletivaForm: React.FC = () => {
 
     let imgUrl = ''
 
-    const timestamp = data.data_nascimento ? new Date(data.data_nascimento).getTime() : 0
     const posicaoString = posicaoArrayToString(data.posicao)
 
     /*   console.log(data.nome)
@@ -216,7 +234,7 @@ export const SeletivaForm: React.FC = () => {
       numerio_seletiva: 1,
       nome: data.nome,
       cpf: cpfSemMascara,
-      data_nascimento: timestamp,
+      data_nascimento: data.data_nascimento,
       email: data.email,
       altura: alturaNumerica,
       peso: pesoNumerico,
@@ -320,22 +338,16 @@ export const SeletivaForm: React.FC = () => {
             control={form.control}
             name="data_nascimento"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col px-1">
                 <FormLabel>Data Nascimento</FormLabel>
                 <FormControl>
-                  <Input
-                    type="date"
-                    disabled={loading}
-                    {...field}
-                    value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                    onChange={(e) => {
-                      // Converte a string da data para um objeto Date
-                      const date = new Date(e.target.value)
-                      // Corrige fuso horário para evitar problemas de data
-                      date.setHours(12, 0, 0, 0)
-                      // Atualiza o campo com o objeto Date
-                      field.onChange(date)
+                  <DatePickerSimple
+                    timestamp={field.value} // Já é um timestamp (number)
+                    setTimestamp={(newTimestamp) => {
+                      // Atualiza diretamente o campo com o timestamp
+                      field.onChange(newTimestamp)
                     }}
+                    placeholder="Selecione a data de nascimento"
                   />
                 </FormControl>
                 <FormMessage />

@@ -28,34 +28,54 @@ import { formatCPF, formatPhone } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { api } from '../../../convex/_generated/api'
+import { DatePickerSimple } from '../date-picker-simple'
 
-const formSchema = z.object({
-  status: z.string(),
-  nome: z.string().min(2, { message: 'Nome é obrigatório' }),
-  cpf: z.string().min(11, { message: 'CPF inválido' }),
-  email: z.string().email({ message: 'Email inválido' }),
-  data_nascimento: z.preprocess(
-    (val) => (val === null ? undefined : val), // Transforma null em undefined
-    z.date({
-      required_error: 'A data de nascimento precisa ser preenchida.',
-    })
-  ),
-  altura: z.string(),
-  peso: z.string(),
-  celular: z.string(),
-  setor: z.string(),
-  posicao: z.string(),
-  rua: z.string(),
-  bairro: z.string(),
-  cidade: z.string(),
-  cep: z.string(),
-  uf: z.string(),
-  complemento: z.string(),
-  genero: z.string(),
-  rg: z.string(),
-  emisor: z.string(),
-  uf_emisor: z.string(),
-})
+const formSchema = z
+  .object({
+    status: z.string(),
+    nome: z.string().min(2, { message: 'Nome é obrigatório' }),
+    cpf: z.string().min(11, { message: 'CPF inválido' }),
+    email: z.string().email({ message: 'Email inválido' }),
+    data_nascimento: z.preprocess(
+      (val) => {
+        // Transforma null em undefined
+        if (val === null) return undefined
+        // Se já for um número (timestamp), mantém como está
+        if (typeof val === 'number') return val
+        return undefined
+      },
+      z
+        .number({
+          required_error: 'A data de nascimento precisa ser preenchida.',
+        })
+        .optional()
+    ),
+    altura: z.string(),
+    peso: z.string(),
+    celular: z.string(),
+    setor: z.string(),
+    posicao: z.string(),
+    rua: z.string(),
+    bairro: z.string(),
+    cidade: z.string(),
+    cep: z.string(),
+    uf: z.string(),
+    complemento: z.string(),
+    genero: z.string(),
+    rg: z.string(),
+    emisor: z.string(),
+    uf_emisor: z.string(),
+  })
+  .refine(
+    (data) => {
+      if (!data.data_nascimento) return true
+      return data.data_nascimento <= Date.now()
+    },
+    {
+      message: 'A data de nascimento não pode ser uma data futura.',
+      path: ['data_nascimento'],
+    }
+  )
 
 interface AtletasFormProps {
   initialData?: {
@@ -104,7 +124,7 @@ export const AtletasForm: React.FC<AtletasFormProps> = ({ initialData, onSuccess
           cpf: initialData.cpf,
           email: initialData.email,
           data_nascimento: initialData.data_nascimento
-            ? new Date(initialData.data_nascimento)
+            ? new Date(initialData.data_nascimento).getTime()
             : undefined,
           altura: initialData.altura ? String(initialData.altura) : '',
           peso: initialData.peso ? String(initialData.peso) : '',
@@ -171,7 +191,7 @@ export const AtletasForm: React.FC<AtletasFormProps> = ({ initialData, onSuccess
             nome: values.nome,
             cpf: values.cpf,
             email: values.email,
-            data_nascimento: new Date(values.data_nascimento).getTime(),
+            data_nascimento: values.data_nascimento,
             data_registro: initialData.data_registro,
             altura: parseFloat(values.altura),
             peso: parseFloat(values.peso),
@@ -222,7 +242,7 @@ export const AtletasForm: React.FC<AtletasFormProps> = ({ initialData, onSuccess
             nome: values.nome,
             cpf: values.cpf,
             email: values.email,
-            data_nascimento: new Date(values.data_nascimento).getTime(),
+            data_nascimento: values.data_nascimento,
             data_registro: new Date().getTime(),
             altura: values.altura ? parseFloat(values.altura) : 0,
             peso: values.peso ? parseFloat(values.peso) : 0,
@@ -348,22 +368,16 @@ export const AtletasForm: React.FC<AtletasFormProps> = ({ initialData, onSuccess
             control={form.control}
             name="data_nascimento"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col px-1">
                 <FormLabel>Data Nascimento</FormLabel>
                 <FormControl>
-                  <Input
-                    type="date"
-                    disabled={loading}
-                    {...field}
-                    value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                    onChange={(e) => {
-                      // Converte a string da data para um objeto Date
-                      const date = new Date(e.target.value)
-                      // Corrige fuso horário para evitar problemas de data
-                      date.setHours(12, 0, 0, 0)
-                      // Atualiza o campo com o objeto Date
-                      field.onChange(date)
+                  <DatePickerSimple
+                    timestamp={field.value} // Já é um timestamp (number)
+                    setTimestamp={(newTimestamp) => {
+                      // Atualiza diretamente o campo com o timestamp
+                      field.onChange(newTimestamp)
                     }}
+                    placeholder="Selecione a data de nascimento"
                   />
                 </FormControl>
                 <FormMessage />

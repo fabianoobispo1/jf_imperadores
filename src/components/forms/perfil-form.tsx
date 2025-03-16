@@ -69,6 +69,16 @@ const formSchema = z
     ]),
     confirmPassword: z.string().optional(),
   })
+  .refine(
+    (data) => {
+      if (!data.data_nascimento) return true
+      return data.data_nascimento <= Date.now()
+    },
+    {
+      message: 'A data de nascimento não pode ser uma data futura.',
+      path: ['data_nascimento'],
+    }
+  )
   .refine((data) => !data.oldPassword || (data.oldPassword && data.password), {
     message: 'Informe a nova senha.',
     path: ['password'], // Aponta para o campo `password`
@@ -208,8 +218,6 @@ export const PerfilForm: React.FC = () => {
       }
     }
 
-    const timestamp = data.data_nascimento ? new Date(data.data_nascimento).getTime() : 0
-
     await fetchMutation(api.user.UpdateUser, {
       userId: data.id as Id<'user'>,
       email: data.email,
@@ -226,8 +234,11 @@ export const PerfilForm: React.FC = () => {
       duration: 3000,
       richColors: true,
     })
+    // Recarrega os dados do usuário para atualizar a interface
+    await loadUser()
 
     form.reset({
+      ...form.getValues(),
       oldPassword: '',
       password: '',
       confirmPassword: '',

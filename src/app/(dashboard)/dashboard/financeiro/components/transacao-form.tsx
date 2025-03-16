@@ -30,12 +30,26 @@ import {
 import { toast } from 'sonner'
 import type { Id } from '@/convex/_generated/dataModel'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { DatePickerSimple } from '@/components/date-picker-simple'
 
 const formSchema = z.object({
   tipo: z.enum(['receita', 'despesa']),
   descricao: z.string().min(3, 'Descrição deve ter no mínimo 3 caracteres'),
   valor: z.number().min(0.01, 'Valor deve ser maior que zero'),
-  data: z.date(),
+  data: z.preprocess(
+    (val) => {
+      // Transforma null em undefined
+      if (val === null) return undefined
+      // Se já for um número (timestamp), mantém como está
+      if (typeof val === 'number') return val
+      return undefined
+    },
+    z
+      .number({
+        required_error: 'A data precisa ser preenchida.',
+      })
+      .optional()
+  ),
   categoria: z.enum(['mensalidade', 'equipamento', 'viagem', 'patrocinio', 'evento', 'outros']),
   status: z.enum(['pendente', 'confirmado']),
   comprovante: z.any().optional(),
@@ -60,7 +74,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
     defaultValues: {
       tipo: 'despesa',
       status: 'pendente',
-      data: new Date(),
+      data: Date.now(),
       descricao: '',
       valor: 0,
       categoria: 'outros',
@@ -85,7 +99,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
         tipo: transacao.tipo,
         descricao: transacao.descricao,
         valor: transacao.valor,
-        data: new Date(transacao.data),
+        data: transacao.data,
         categoria: transacao.categoria,
         status: transacao.status,
         observacao: transacao.observacao || '',
@@ -103,7 +117,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
           tipo: data.tipo,
           descricao: data.descricao,
           valor: data.valor,
-          data: data.data.getTime(),
+          data: data.data || Date.now(),
           categoria: data.categoria,
           status: data.status,
           userId: session.user.id as Id<'user'>,
@@ -117,7 +131,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
           tipo: data.tipo,
           descricao: data.descricao,
           valor: data.valor,
-          data: data.data.getTime(),
+          data: data.data || Date.now(),
           categoria: data.categoria,
           status: data.status,
           created_at: Date.now(),
@@ -157,7 +171,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
               control={form.control}
               name="tipo"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col px-1">
                   <FormLabel>Tipo de Movimentação</FormLabel>
                   <Select disabled={loading} onValueChange={field.onChange} value={field.value}>
                     <FormControl>
@@ -179,7 +193,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
               control={form.control}
               name="categoria"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col px-1">
                   <FormLabel>Categoria</FormLabel>
                   <Select disabled={loading} onValueChange={field.onChange} value={field.value}>
                     <FormControl>
@@ -205,7 +219,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
               control={form.control}
               name="descricao"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col px-1">
                   <FormLabel>Descrição</FormLabel>
                   <FormControl>
                     <Input disabled={loading} placeholder="Digite a descrição" {...field} />
@@ -218,7 +232,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
               control={form.control}
               name="valor"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col px-1">
                   <FormLabel>Valor</FormLabel>
                   <FormControl>
                     <NumericFormat
@@ -240,27 +254,20 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="data"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col px-1">
                   <FormLabel>Data pagamento/recebimento</FormLabel>
                   <FormControl>
-                    <Input
-                      type="date"
-                      disabled={loading}
-                      {...field}
-                      value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                      onChange={(e) => {
-                        // Converte a string da data para um objeto Date
-                        const date = new Date(e.target.value)
-                        // Corrige fuso horário para evitar problemas de data
-                        date.setHours(12, 0, 0, 0)
-                        // Atualiza o campo com o objeto Date
-                        field.onChange(date)
+                    <DatePickerSimple
+                      timestamp={field.value}
+                      setTimestamp={(newTimestamp) => {
+                        field.onChange(newTimestamp)
                       }}
+                      placeholder="Selecione a data"
+                      disabledDays={(date: Date) => false}
                     />
                   </FormControl>
                   <FormMessage />
@@ -272,7 +279,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
               control={form.control}
               name="status"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col px-1">
                   <FormLabel>Status</FormLabel>
                   <Select disabled={loading} onValueChange={field.onChange} value={field.value}>
                     <FormControl>
@@ -295,7 +302,7 @@ export function TransacaoForm({ onSuccess, id }: TransacaoFormProps) {
             control={form.control}
             name="observacao"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col px-1">
                 <FormLabel>Observações</FormLabel>
                 <FormControl>
                   <Textarea disabled={loading} placeholder="Observações adicionais" {...field} />
