@@ -13,25 +13,19 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn('p-3', className)}
+      className={cn('px-1 ', className)}
       classNames={{
+        months: 'flex flex-col sm:flex-row space-y-2 sm:space-y-0 relative',
         month: 'space-y-4',
-        months: 'flex flex-col sm:flex-row space-y-4 sm:space-y-0 relative',
-        month_caption: 'flex justify-center pt-1 relative items-center',
+        month_caption: 'flex justify-center relative items-center',
         month_grid: 'w-full border-collapse space-y-1',
         caption_label: 'text-sm font-medium',
-        nav: 'flex items-center justify-between absolute inset-x-0',
-        button_previous: cn(
-          buttonVariants({ variant: 'outline' }),
-          'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 z-10'
-        ),
-        button_next: cn(
-          buttonVariants({ variant: 'outline' }),
-          'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 z-10'
-        ),
-        weeks: 'w-full border-collapse space-y-',
+        nav: 'hidden',
+        button_previous: 'hidden',
+        button_next: 'hidden',
         weekdays: 'flex',
         weekday: 'text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]',
+        weeks: 'w-full border-collapse space-y-1',
         week: 'flex w-full mt-2',
         day_button:
           'h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
@@ -58,10 +52,12 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
             <ChevronRight {...props} className="h-4 w-4" />
           ),
       }}
+      disableNavigation={true}
       {...props}
     />
   )
 }
+
 Calendar.displayName = 'Calendar'
 
 export { Calendar }
