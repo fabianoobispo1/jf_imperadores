@@ -35,8 +35,10 @@ import {
 import type { Id } from '../../../../../convex/_generated/dataModel'
 import { api } from '../../../../../convex/_generated/api'
 import { AtletasForm } from '../../../../components/forms/atletas-form'
-import { Toaster } from '@/components/ui/sonner'
+
 import { toast } from 'sonner'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 
 const SETOR_LABELS = {
   1: 'Ataque',
@@ -92,6 +94,7 @@ export const AtletasList = () => {
   const { data: session } = useSession()
   const [isAdmin, setIsAdmin] = useState(false)
   const [carregou, setiscarregou] = useState(false)
+  const [exibeBotaoCopiar, setExibeBotaoCopiar] = useState(true)
   if (session) {
     /*     console.log(session) */
 
@@ -187,6 +190,10 @@ export const AtletasList = () => {
       })
   }
 
+  const toggleCopyButtons = () => {
+    setExibeBotaoCopiar((prev) => !prev)
+  }
+
   return (
     <div
       className={cn(
@@ -194,16 +201,21 @@ export const AtletasList = () => {
         open ? 'md:max-w-[calc(100%-18rem)] ' : 'md:max-w-[calc(100%-7rem)] '
       )}
     >
-      <div className="flex justify-between items-center gap-2 w-full overflow-auto  pr-4">
+      <div className="flex justify-between items-center gap-2 w-full overflow-auto pr-4">
         <Button disabled={!isAdmin} onClick={() => setIsAddModalOpen(true)}>
           Adicionar Atleta
         </Button>
+
+        <div className="flex items-center space-x-2">
+          <Switch id="copy-mode" checked={exibeBotaoCopiar} onCheckedChange={toggleCopyButtons} />
+          <Label htmlFor="copy-mode">Exibir botões de cópia</Label>
+        </div>
+
         <Button variant="outline" onClick={() => exportToPDF()}>
           <FileDown className="mr-2 h-4 w-4" />
-          PDF Ativos e aporvados
+          PDF Ativos e aprovados
         </Button>
       </div>
-
       <div className="w-full overflow-auto">
         <div className="w-full pr-4">
           {/* Largura mínima para garantir que todas as colunas fiquem visíveis */}
@@ -235,6 +247,7 @@ export const AtletasList = () => {
                   <TableHead className="text-center">UF Emissor</TableHead>
                   <TableHead className="text-center min-w-[150px]">Data Registro</TableHead>
                   {/* <TableHead className="text-center">Imagem</TableHead> */}
+                  <TableHead className="text-center min-w-[300px]">Nome</TableHead>
                   <TableHead className="text-center">Opções</TableHead>
                 </TableRow>
               </TableHeader>
@@ -257,16 +270,18 @@ export const AtletasList = () => {
                         }
                       </TableCell> */}
                       <TableCell>
-                        {atleta.nome}{' '}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => copyToClipboard(atleta.nome)}
-                          title="Copiar nome"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
+                        {atleta.nome}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.nome)}
+                            title="Copiar nome"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
                       </TableCell>
                       <TableCell className="text-center">
                         {atleta.data_nascimento
@@ -275,50 +290,198 @@ export const AtletasList = () => {
                       </TableCell>
                       <TableCell>
                         {atleta.email}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => copyToClipboard(atleta.email)}
-                          title="Copiar email"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.email)}
+                            title="Copiar email"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
                       </TableCell>
                       <TableCell className="text-center">
                         {atleta.celular === '' ? '-' : formatPhoneNumber(atleta.celular)}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => copyToClipboard(atleta.celular)}
-                          title="Copiar celular"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.celular)}
+                            title="Copiar celular"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
                       </TableCell>
-                      <TableCell className="text-center">{formatCPF(atleta.cpf)}</TableCell>
+                      <TableCell className="text-center">
+                        {formatCPF(atleta.cpf)}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.cpf)}
+                            title="Copiar cpf"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
                       <TableCell>{atleta.altura}m</TableCell>
                       <TableCell>{atleta.peso}kg</TableCell>
                       <TableCell>
                         {SETOR_LABELS[atleta.setor as keyof typeof SETOR_LABELS]}
                       </TableCell>
                       <TableCell>{atleta.posicao}</TableCell>
-                      <TableCell>{atleta.rua}</TableCell>
-                      <TableCell className="text-center">{atleta.bairro}</TableCell>
-                      <TableCell className="text-center">{atleta.cidade}</TableCell>
-                      <TableCell>{atleta.cep}</TableCell>
-                      <TableCell>{atleta.uf}</TableCell>
-                      <TableCell>{atleta.complemento}</TableCell>
+                      <TableCell>
+                        {atleta.rua}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.rua)}
+                            title="Copiar rua"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {atleta.bairro}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.bairro)}
+                            title="Copiar bairro"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {atleta.cidade}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.cidade)}
+                            title="Copiar cidade"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        {atleta.cep}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.cep)}
+                            title="Copiar cep"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        {atleta.uf}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.uf)}
+                            title="Copiar uf"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        {atleta.complemento}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.complemento)}
+                            title="Copiar complemento"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
                       {/*  <TableCell>{atleta.genero}</TableCell> */}
-                      <TableCell>{atleta.rg}</TableCell>
-                      <TableCell>{atleta.emisor}</TableCell>
-                      <TableCell>{atleta.uf_emisor}</TableCell>
+                      <TableCell>
+                        {atleta.rg}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.rg)}
+                            title="Copiar rg"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        {atleta.emisor}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.emisor)}
+                            title="Copiar emisor"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        {atleta.uf_emisor}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.uf_emisor)}
+                            title="Copiar uf_emisor"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
+                      </TableCell>
                       {/*        <TableCell>{atleta.img_link}</TableCell> */}
                       <TableCell className="text-center">
                         {atleta.data_registro
                           ? new Date(atleta.data_registro).toLocaleDateString()
                           : '-'}
+                      </TableCell>
+                      <TableCell>
+                        {atleta.nome}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(atleta.nome)}
+                            title="Copiar nome"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
                       </TableCell>
                       <TableCell>
                         {/*  <LoadingButton loading={loading} disabled>
