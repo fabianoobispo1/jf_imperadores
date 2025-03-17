@@ -35,6 +35,8 @@ import {
 import type { Id } from '../../../../../convex/_generated/dataModel'
 import { api } from '../../../../../convex/_generated/api'
 import { AtletasForm } from '../../../../components/forms/atletas-form'
+import { Toaster } from '@/components/ui/sonner'
+import { toast } from 'sonner'
 
 const SETOR_LABELS = {
   1: 'Ataque',
@@ -174,8 +176,11 @@ export const AtletasList = () => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        // Opcional: adicionar um toast/notificação de sucesso
-        console.log('Copiado para a área de transferência!')
+        toast.success('Ok', {
+          description: 'Copiado para a área de transferência!',
+          duration: 3000,
+          richColors: true,
+        })
       })
       .catch((err) => {
         console.error('Erro ao copiar: ', err)
