@@ -173,55 +173,42 @@ export const AtletasForm: React.FC<AtletasFormProps> = ({ initialData, onSuccess
       console.log(values)
 
       if (initialData) {
-        // Check if email already exists
-        const existingAtleta = await fetchQuery(api.atletas.getByEmail, {
+        await update({
+          atletaId: initialData._id,
+          status: parseInt(values.status),
+          nome: values.nome,
+          cpf: values.cpf,
           email: values.email,
+          data_nascimento: values.data_nascimento,
+          data_registro: initialData.data_registro,
+          altura: parseFloat(values.altura),
+          peso: parseFloat(values.peso),
+          celular: values.celular,
+          setor: parseInt(values.setor),
+          posicao: values.posicao,
+          rua: values.rua,
+          bairro: values.bairro,
+          cidade: values.cidade,
+          cep: values.cep,
+          uf: values.uf,
+          complemento: values.complemento,
+          genero: values.genero,
+          rg: values.rg,
+          emisor: values.emisor,
+          uf_emisor: values.uf_emisor,
+          img_link: '',
         })
 
-        if (existingAtleta) {
-          toast.error('Erro', {
-            description: 'Email já cadastrado no sistema.',
-            duration: 3000,
-            richColors: true,
-          })
-        } else {
-          await update({
-            atletaId: initialData._id,
-            status: parseInt(values.status),
-            nome: values.nome,
-            cpf: values.cpf,
-            email: values.email,
-            data_nascimento: values.data_nascimento,
-            data_registro: initialData.data_registro,
-            altura: parseFloat(values.altura),
-            peso: parseFloat(values.peso),
-            celular: values.celular,
-            setor: parseInt(values.setor),
-            posicao: values.posicao,
-            rua: values.rua,
-            bairro: values.bairro,
-            cidade: values.cidade,
-            cep: values.cep,
-            uf: values.uf,
-            complemento: values.complemento,
-            genero: values.genero,
-            rg: values.rg,
-            emisor: values.emisor,
-            uf_emisor: values.uf_emisor,
-            img_link: '',
-          })
+        toast.success('Atleta Altrerado com sucesso!', {
+          description: 'Os dados foram alterados no sistema.',
+          duration: 3000,
+          richColors: true,
+        })
 
-          toast.success('Atleta Altrerado com sucesso!', {
-            description: 'Os dados foram alterados no sistema.',
-            duration: 3000,
-            richColors: true,
-          })
+        form.reset()
 
-          form.reset()
-
-          onSuccess?.()
-          setLoading(false)
-        }
+        onSuccess?.()
+        setLoading(false)
       } else {
         console.log(`adiciona`)
 
@@ -618,7 +605,7 @@ export const AtletasForm: React.FC<AtletasFormProps> = ({ initialData, onSuccess
           />
 
           <Button type="submit" disabled={loading}>
-            {loading ? 'Cadastrando...' : 'Cadastrar Atleta'}
+            {initialData ? 'Salvar Alterações' : 'Cadastrar Atleta'}
           </Button>
         </form>
       </Form>

@@ -28,12 +28,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import { cn, formatPhoneNumber } from '@/lib/utils'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 import type { Id } from '../../../../../convex/_generated/dataModel'
 import { api } from '../../../../../convex/_generated/api'
@@ -74,6 +69,7 @@ interface Seletivas {
   img_link?: string
   cod_seletiva?: string
   transferido_atleta?: boolean
+  img_key?: string
 }
 interface Exercicios {
   _id: Id<'exercicios'>
@@ -93,15 +89,9 @@ export function TryoutList() {
   const [pesoDirection, setPesoDirection] = useState<'asc' | 'desc'>('asc')
   const [alturaDirection, setAlturaDirection] = useState<'asc' | 'desc'>('asc')
 
-  const [dataCradastroDirection, setDataCradastroDirection] = useState<
-    'asc' | 'desc'
-  >('asc')
-  const [codSeletivaDirection, setCodSeletivaDirection] = useState<
-    'asc' | 'desc'
-  >('asc')
-  const [selectedSeletiva, setSelectedSeletiva] = useState<Seletivas | null>(
-    null,
-  )
+  const [dataCradastroDirection, setDataCradastroDirection] = useState<'asc' | 'desc'>('asc')
+  const [codSeletivaDirection, setCodSeletivaDirection] = useState<'asc' | 'desc'>('asc')
+  const [selectedSeletiva, setSelectedSeletiva] = useState<Seletivas | null>(null)
 
   const [exercicios, setExercicios] = useState<Exercicios[]>([])
   const { open } = useSidebar()
@@ -213,18 +203,14 @@ export function TryoutList() {
       seletiva.nome,
       seletiva.email,
       formatPhoneNumber(seletiva.celular),
-      seletiva.data_nascimento
-        ? new Date(seletiva.data_nascimento).toLocaleDateString()
-        : '-',
+      seletiva.data_nascimento ? new Date(seletiva.data_nascimento).toLocaleDateString() : '-',
       `${seletiva.altura}m`,
       `${seletiva.peso}kg`,
       SETOR_LABELS[seletiva.setor as keyof typeof SETOR_LABELS],
       seletiva.posicao,
       seletiva.tem_experiencia ? 'Sim' : 'Não',
       seletiva.equipe_anterior || '-',
-      EQUIPAMENTO_LABELS[
-        seletiva.equipamento as keyof typeof EQUIPAMENTO_LABELS
-      ],
+      EQUIPAMENTO_LABELS[seletiva.equipamento as keyof typeof EQUIPAMENTO_LABELS],
     ])
 
     // @ts-expect-error - Specific reason for expecting the error
@@ -307,6 +293,13 @@ export function TryoutList() {
       return codB.localeCompare(codA)
     })
   }
+  const formatarNome = (nome: string) => {
+    // Remove acentuação e converte para maiúsculo
+    return nome
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+  }
 
   const handleTransferToAtleta = async (seletiva: Seletivas) => {
     console.log('Transferir atleta:', seletiva)
@@ -314,7 +307,7 @@ export function TryoutList() {
     try {
       await fetchMutation(api.atletas.create, {
         status: 1,
-        nome: seletiva.nome,
+        nome: formatarNome(seletiva.nome),
         cpf: seletiva.cpf,
         email: seletiva.email,
         data_nascimento: seletiva.data_nascimento,
@@ -322,7 +315,7 @@ export function TryoutList() {
         altura: seletiva.altura,
         peso: seletiva.peso,
         celular: seletiva.celular,
-        setor: 4,
+        setor: 0,
         posicao: '',
         rua: '',
         bairro: '',
@@ -335,6 +328,7 @@ export function TryoutList() {
         emisor: '',
         uf_emisor: '',
         img_link: seletiva.img_link ? seletiva.img_link : '',
+        img_key: seletiva.img_key ? seletiva.img_key : '',
       })
 
       await fetchMutation(api.seletiva.updatetransferido, {
@@ -348,13 +342,7 @@ export function TryoutList() {
     }
   }
 
-  const ImageCell = ({
-    imageUrl,
-    className,
-  }: {
-    imageUrl: string
-    className?: string
-  }) => {
+  const ImageCell = ({ imageUrl, className }: { imageUrl: string; className?: string }) => {
     /*       return (
         <Image
           src="/carousel-1.svg"
@@ -382,7 +370,7 @@ export function TryoutList() {
       <div
         className={cn(
           'space-y-8 w-screen pr-4 ',
-          open ? 'md:max-w-[calc(100%-16rem)] ' : 'md:max-w-[calc(100%-5rem)] ',
+          open ? 'md:max-w-[calc(100%-16rem)] ' : 'md:max-w-[calc(100%-5rem)] '
         )}
       >
         <div className="w-full overflow-auto">
@@ -420,52 +408,34 @@ export function TryoutList() {
                       <TableHead
                         className="text-center min-w-[150px] cursor-pointer hover:bg-muted"
                         onClick={() => {
-                          setCodSeletivaDirection((prev) =>
-                            prev === 'asc' ? 'desc' : 'asc',
-                          )
+                          setCodSeletivaDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
                           setSeletivas(sortCodSeletivaSeletivas(seletivas))
                         }}
                       >
-                        Cod. Seletiva{' '}
-                        {codSeletivaDirection === 'asc' ? '↑' : '↓'}
+                        Cod. Seletiva {codSeletivaDirection === 'asc' ? '↑' : '↓'}
                       </TableHead>
-                      <TableHead className="text-center min-w-[100px]">
-                        Imagem
-                      </TableHead>
+                      <TableHead className="text-center min-w-[100px]">Imagem</TableHead>
                       <TableHead
                         className="text-center min-w-[200px] cursor-pointer hover:bg-muted"
                         onClick={() => {
-                          setSortDirection((prev) =>
-                            prev === 'asc' ? 'desc' : 'asc',
-                          )
+                          setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
                           setSeletivas(sortSeletivas(seletivas))
                         }}
                       >
                         Nome {sortDirection === 'asc' ? '↑' : '↓'}
                       </TableHead>
-                      <TableHead className="text-center min-w-[200px]">
-                        Email
-                      </TableHead>
+                      <TableHead className="text-center min-w-[200px]">Email</TableHead>
                       {exercicios.map((exercicio) => (
-                        <TableHead
-                          className="text-center min-w-[200px]"
-                          key={exercicio._id}
-                        >
+                        <TableHead className="text-center min-w-[200px]" key={exercicio._id}>
                           {exercicio.nome}
                         </TableHead>
                       ))}
-                      <TableHead className="text-center w-32">
-                        Celular
-                      </TableHead>
-                      <TableHead className="text-center w-28">
-                        Data Nasc.
-                      </TableHead>
+                      <TableHead className="text-center w-32">Celular</TableHead>
+                      <TableHead className="text-center w-28">Data Nasc.</TableHead>
                       <TableHead
                         className="text-center min-w-[200px] cursor-pointer hover:bg-muted"
                         onClick={() => {
-                          setAlturaDirection((prev) =>
-                            prev === 'asc' ? 'desc' : 'asc',
-                          )
+                          setAlturaDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
                           setSeletivas(sortAlturaSeletivas(seletivas))
                         }}
                       >
@@ -474,38 +444,25 @@ export function TryoutList() {
                       <TableHead
                         className="text-center min-w-[200px] cursor-pointer hover:bg-muted"
                         onClick={() => {
-                          setPesoDirection((prev) =>
-                            prev === 'asc' ? 'desc' : 'asc',
-                          )
+                          setPesoDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
                           setSeletivas(sortPesoSeletivas(seletivas))
                         }}
                       >
                         Peso {pesoDirection === 'asc' ? '↑' : '↓'}
                       </TableHead>
                       <TableHead className="text-center w-32">Setor</TableHead>
-                      <TableHead className="text-center w-28">
-                        Posição
-                      </TableHead>
-                      <TableHead className="text-center w-28">
-                        Experiência
-                      </TableHead>
-                      <TableHead className="text-center min-w-[150px]">
-                        Equipe Anterior
-                      </TableHead>
-                      <TableHead className="text-center min-w-[150px]">
-                        Equipamento
-                      </TableHead>
+                      <TableHead className="text-center w-28">Posição</TableHead>
+                      <TableHead className="text-center w-28">Experiência</TableHead>
+                      <TableHead className="text-center min-w-[150px]">Equipe Anterior</TableHead>
+                      <TableHead className="text-center min-w-[150px]">Equipamento</TableHead>
                       <TableHead
                         className="text-center min-w-[200px] cursor-pointer hover:bg-muted"
                         onClick={() => {
-                          setDataCradastroDirection((prev) =>
-                            prev === 'asc' ? 'desc' : 'asc',
-                          )
+                          setDataCradastroDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
                           setSeletivas(sortDataCadastroSeletivas(seletivas))
                         }}
                       >
-                        Data Cadastro{' '}
-                        {dataCradastroDirection === 'asc' ? '↑' : '↓'}
+                        Data Cadastro {dataCradastroDirection === 'asc' ? '↑' : '↓'}
                       </TableHead>
 
                       <TableHead className="text-center w-24">Opções</TableHead>
@@ -526,7 +483,7 @@ export function TryoutList() {
                           className={cn(
                             seletiva.aprovado && 'bg-green-100',
                             seletiva.transferido_atleta && 'bg-blue-500',
-                            'cursor-pointer hover:bg-muted/50',
+                            'cursor-pointer hover:bg-muted/50'
                           )}
                         >
                           {/*  <TableCell className="text-center">
@@ -542,11 +499,7 @@ export function TryoutList() {
                             className="text-center"
                             onClick={() => setSelectedSeletiva(seletiva)}
                           >
-                            {seletiva.img_link ? (
-                              <ImageCell imageUrl={seletiva.img_link} />
-                            ) : (
-                              '-'
-                            )}
+                            {seletiva.img_link ? <ImageCell imageUrl={seletiva.img_link} /> : '-'}
                           </TableCell>
                           <TableCell
                             className="text-center  font-medium"
@@ -556,10 +509,7 @@ export function TryoutList() {
                           </TableCell>
                           <TableCell>{seletiva.email}</TableCell>
                           {exercicios.map((exercicio) => (
-                            <TableCell
-                              className="text-center  font-medium"
-                              key={exercicio._id}
-                            >
+                            <TableCell className="text-center  font-medium" key={exercicio._id}>
                               <ExercicioTentativas
                                 seletivaId={seletiva._id}
                                 exercicioId={exercicio._id}
@@ -571,27 +521,15 @@ export function TryoutList() {
                           </TableCell>
                           <TableCell className="text-center whitespace-nowrap">
                             {seletiva.data_nascimento
-                              ? new Date(
-                                  seletiva.data_nascimento,
-                                ).toLocaleDateString()
+                              ? new Date(seletiva.data_nascimento).toLocaleDateString()
                               : '-'}
                           </TableCell>
-                          <TableCell className="text-center">
-                            {seletiva.altura}m
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {seletiva.peso}kg
-                          </TableCell>
+                          <TableCell className="text-center">{seletiva.altura}m</TableCell>
+                          <TableCell className="text-center">{seletiva.peso}kg</TableCell>
                           <TableCell className="text-center whitespace-nowrap">
-                            {
-                              SETOR_LABELS[
-                                seletiva.setor as keyof typeof SETOR_LABELS
-                              ]
-                            }
+                            {SETOR_LABELS[seletiva.setor as keyof typeof SETOR_LABELS]}
                           </TableCell>
-                          <TableCell className="text-center">
-                            {seletiva.posicao}
-                          </TableCell>
+                          <TableCell className="text-center">{seletiva.posicao}</TableCell>
                           <TableCell className="text-center whitespace-nowrap">
                             {seletiva.tem_experiencia ? 'Sim' : 'Não'}
                           </TableCell>
@@ -606,9 +544,7 @@ export function TryoutList() {
                             }
                           </TableCell>
                           <TableCell className="text-center whitespace-nowrap">
-                            {new Date(
-                              seletiva._creationTime,
-                            ).toLocaleDateString()}
+                            {new Date(seletiva._creationTime).toLocaleDateString()}
                           </TableCell>
 
                           <TableCell>
@@ -628,10 +564,7 @@ export function TryoutList() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleApproveAthlete(seletiva)}
-                                disabled={
-                                  seletiva.aprovado ||
-                                  approvingId === seletiva._id
-                                }
+                                disabled={seletiva.aprovado || approvingId === seletiva._id}
                                 className="w-full"
                               >
                                 {approvingId === seletiva._id ? (
@@ -646,10 +579,7 @@ export function TryoutList() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleTransferToAtleta(seletiva)}
-                                disabled={
-                                  !seletiva.aprovado ||
-                                  seletiva.transferido_atleta
-                                }
+                                disabled={!seletiva.aprovado || seletiva.transferido_atleta}
                                 className="w-full"
                               >
                                 Transferir para Atletas
@@ -669,9 +599,8 @@ export function TryoutList() {
         <div className="flex items-center justify-end space-x-2 py-4 pr-4">
           <div className="flex-1 text-sm text-muted-foreground">
             <p>
-              Página {Math.ceil(offset / pageLimit) + 1} de{' '}
-              {Math.ceil(totalCount / pageLimit)} | Total de registros:{' '}
-              {totalCount}
+              Página {Math.ceil(offset / pageLimit) + 1} de {Math.ceil(totalCount / pageLimit)} |
+              Total de registros: {totalCount}
             </p>
           </div>
           <Select
@@ -713,10 +642,7 @@ export function TryoutList() {
       </div>
 
       {selectedSeletiva && (
-        <Dialog
-          open={!!selectedSeletiva}
-          onOpenChange={() => setSelectedSeletiva(null)}
-        >
+        <Dialog open={!!selectedSeletiva} onOpenChange={() => setSelectedSeletiva(null)}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>Detalhes do Candidato</DialogTitle>

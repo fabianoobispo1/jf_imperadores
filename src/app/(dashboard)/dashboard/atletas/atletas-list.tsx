@@ -287,6 +287,23 @@ export const AtletasList = () => {
                         {atleta.data_nascimento
                           ? new Date(atleta.data_nascimento).toLocaleDateString()
                           : '-'}
+                        {exibeBotaoCopiar ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() =>
+                              copyToClipboard(
+                                atleta.data_nascimento
+                                  ? new Date(atleta.data_nascimento).toLocaleDateString()
+                                  : '-'
+                              )
+                            }
+                            title="Copiar data de nascimento"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        ) : null}
                       </TableCell>
                       <TableCell>
                         {atleta.email}
