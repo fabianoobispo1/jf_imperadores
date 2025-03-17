@@ -1,6 +1,6 @@
 'use-client'
 import { useEffect, useState } from 'react'
-import { PenBoxIcon, Trash, FileDown } from 'lucide-react'
+import { PenBoxIcon, Trash, FileDown, Copy } from 'lucide-react'
 import { fetchMutation, fetchQuery } from 'convex/nextjs'
 import { useSession } from 'next-auth/react'
 import { jsPDF } from 'jspdf'
@@ -170,6 +170,18 @@ export const AtletasList = () => {
     doc.save('lista_completa.pdf')
   }
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        // Opcional: adicionar um toast/notificação de sucesso
+        console.log('Copiado para a área de transferência!')
+      })
+      .catch((err) => {
+        console.error('Erro ao copiar: ', err)
+      })
+  }
+
   return (
     <div
       className={cn(
@@ -239,15 +251,46 @@ export const AtletasList = () => {
                           ]
                         }
                       </TableCell> */}
-                      <TableCell>{atleta.nome}</TableCell>
+                      <TableCell>
+                        {atleta.nome}{' '}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => copyToClipboard(atleta.nome)}
+                          title="Copiar nome"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </TableCell>
                       <TableCell className="text-center">
                         {atleta.data_nascimento
                           ? new Date(atleta.data_nascimento).toLocaleDateString()
                           : '-'}
                       </TableCell>
-                      <TableCell>{atleta.email}</TableCell>
+                      <TableCell>
+                        {atleta.email}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => copyToClipboard(atleta.email)}
+                          title="Copiar email"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </TableCell>
                       <TableCell className="text-center">
                         {atleta.celular === '' ? '-' : formatPhoneNumber(atleta.celular)}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => copyToClipboard(atleta.celular)}
+                          title="Copiar celular"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
                       </TableCell>
                       <TableCell className="text-center">{formatCPF(atleta.cpf)}</TableCell>
                       <TableCell>{atleta.altura}m</TableCell>
