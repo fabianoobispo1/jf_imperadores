@@ -149,24 +149,36 @@ export const AtletasList = () => {
   const preparePDFData = async () => {
     setLoadingPDF(true)
     try {
-      const activeAtletas = await fetchQuery(api.atletas.getAllAtivos, {})
+      // Usar try/catch para cada operação de rede
+      let activeAtletas
+      try {
+        activeAtletas = await fetchQuery(api.atletas.getAllAtivos, {})
+      } catch (error) {
+        console.error('Erro ao buscar atletas ativos:', error)
+        throw new Error('Falha ao buscar dados dos atletas')
+      }
 
       // Ordenar por nome
+
       const sortedAtletas = [...activeAtletas].sort((a, b) => a.nome.localeCompare(b.nome))
 
-      // Mapear apenas os campos necessários para o PDF
+      // Mapear apenas os campos necessários para o PDF (reduzir tamanho dos dados)
       const formattedData = sortedAtletas.map((atleta) => ({
         nome: atleta.nome,
+
         cpf: atleta.cpf,
       }))
 
-      setPdfData(formattedData)
+      // Verificar se há dados antes de prosseguir
+      if (formattedData.length === 0) {
+        toast.warning('Sem dados', {
+          description: 'Não há atletas ativos para gerar o PDF',
+          duration: 3000,
+        })
+        return
+      }
 
-      toast.success('PDF pronto para download', {
-        description: 'Clique no botão para baixar o arquivo',
-        duration: 3000,
-        richColors: true,
-      })
+      setPdfData(formattedData)
     } catch (error) {
       console.error('Erro ao preparar dados para PDF:', error)
       toast.error('Erro ao preparar PDF', {
@@ -215,15 +227,25 @@ export const AtletasList = () => {
         </div>
 
         {pdfData ? (
-          <Suspense
-            fallback={
-              <Button variant="outline" disabled>
-                Carregando PDF...
-              </Button>
-            }
-          >
-            <AtletasPDFDownload atletas={pdfData} />
-          </Suspense>
+          <div className="flex gap-2">
+            <Suspense
+              fallback={
+                <Button variant="outline" disabled>
+                  Carregando PDF...
+                </Button>
+              }
+            >
+              <AtletasPDFDownload atletas={pdfData} />
+            </Suspense>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPdfData(null)}
+              title="Cancelar geração de PDF"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
         ) : (
           <Button variant="outline" onClick={preparePDFData} disabled={loadingPDF}>
             <FileDown className="mr-2 h-4 w-4" />

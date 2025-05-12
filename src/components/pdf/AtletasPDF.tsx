@@ -1,42 +1,35 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, BlobProvider, Font } from '@react-pdf/renderer'
 import { formatCPF } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { FileDown } from 'lucide-react'
 
-// Registrar fontes (opcional, mas melhora a aparência)
+// Registrar fontes de CDNs confiáveis
 Font.register({
   family: 'Roboto',
-  fonts: [
-    {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf',
-      fontWeight: 'normal',
-    },
-    {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf',
-      fontWeight: 'bold',
-    },
-  ],
+  src: 'https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxP.ttf',
+  fontWeight: 'normal',
 })
 
-// Definir estilos
+// Estilos simplificados para melhor compatibilidade
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 30,
+    padding: 20,
     fontFamily: 'Roboto',
   },
   title: {
-    fontSize: 16,
-    marginBottom: 20,
+    fontSize: 14,
+    marginBottom: 10,
     textAlign: 'center',
-    fontWeight: 'bold',
   },
   table: {
     display: 'flex',
     width: 'auto',
     borderStyle: 'solid',
     borderWidth: 1,
-    borderColor: '#bfbfbf',
+    borderColor: '#000000',
     borderRightWidth: 0,
     borderBottomWidth: 0,
   },
@@ -44,30 +37,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   tableHeader: {
-    backgroundColor: '#003366',
+    backgroundColor: '#E4E4E4',
   },
   tableCell: {
     width: '50%',
     borderStyle: 'solid',
     borderWidth: 1,
-    borderColor: '#bfbfbf',
+    borderColor: '#000000',
     borderLeftWidth: 0,
     borderTopWidth: 0,
     padding: 5,
     fontSize: 8,
   },
   headerCell: {
-    color: '#FFFFFF',
     fontWeight: 'bold',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
-    textAlign: 'center',
-    fontSize: 8,
-    color: 'grey',
   },
 })
 
@@ -81,7 +64,7 @@ interface AtletaPDF {
 const AtletasPDFDocument = ({ atletas }: { atletas: AtletaPDF[] }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      <Text style={styles.title}>Lista Completa de Atletas Ativos</Text>
+      <Text style={styles.title}>Lista de Atletas Ativos</Text>
       <View style={styles.table}>
         <View style={[styles.tableRow, styles.tableHeader]}>
           <Text style={[styles.tableCell, styles.headerCell]}>Nome</Text>
@@ -94,27 +77,32 @@ const AtletasPDFDocument = ({ atletas }: { atletas: AtletaPDF[] }) => (
           </View>
         ))}
       </View>
-      <Text style={styles.footer}>Imperadores Football - {new Date().toLocaleDateString()}</Text>
     </Page>
   </Document>
 )
 
-// Componente para download
+// Componente para download usando BlobProvider (mais compatível com dispositivos móveis)
 export const AtletasPDFDownload = ({ atletas }: { atletas: AtletaPDF[] }) => (
-  <PDFDownloadLink
-    document={<AtletasPDFDocument atletas={atletas} />}
-    fileName="lista_atletas.pdf"
-    style={{
-      textDecoration: 'none',
-      padding: '8px 16px',
-      backgroundColor: '#f0f0f0',
-      color: '#333',
-      borderRadius: '4px',
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '8px',
+  <BlobProvider document={<AtletasPDFDocument atletas={atletas} />}>
+    {({ blob, url, loading, error }) => {
+      if (loading) return <Button disabled>Gerando PDF...</Button>
+      if (error) return <Button variant="destructive">Erro ao gerar PDF</Button>
+      
+      return (
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            // Criar um link temporário para download
+            const link = document.createElement('a')
+            link.href = url as string
+            link.download = 'lista_atletas.pdf'
+            link.click()
+          }}
+        >
+          <FileDown className="mr-2 h-4 w-4" />
+          Baixar PDF
+        </Button>
+      )
     }}
-  >
-    {({ blob, url, loading, error }) => (loading ? 'Gerando PDF...' : 'Baixar PDF')}
-  </PDFDownloadLink>
+  </BlobProvider>
 )
