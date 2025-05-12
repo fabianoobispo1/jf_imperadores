@@ -209,6 +209,15 @@ export const AtletasList = () => {
     setExibeBotaoCopiar((prev) => !prev)
   }
 
+  const exportToPDF = () => {
+    setLoading(true);
+    
+    // Abrir em nova aba para download
+    window.open('/api/pdf/atletas', '_blank');
+    
+    setLoading(false);
+  };
+
   return (
     <div
       className={cn(
@@ -652,166 +661,4 @@ export const AtletasList = () => {
       </Dialog>
     </div>
   )
-} /* 
-Alternativa: Usar react-pdf
-Se o problema persistir, uma alternativa mais compatível com Next.js é usar a biblioteca @react-pdf/renderer:
-
-npm install @react-pdf/renderer
-
-Copy
-Execute
-
-E então criar um componente separado para o PDF:
-
-import React from 'react';
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
-import { formatCPF } from '@/lib/utils';
-
-// Definir estilos
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
-    padding: 30,
-  },
-  title: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  table: {
-    display: 'flex',
-    width: 'auto',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-  },
-  tableRow: {
-    flexDirection: 'row',
-  },
-  tableHeader: {
-    backgroundColor: '#003366',
-    color: '#FFFFFF',
-  },
-  tableCell: {
-    width: '50%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
-    fontSize: 8,
-  },
-  headerCell: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-});
-
-// Componente PDF
-const AtletasPDF = ({ atletas }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <Text style={styles.title}>Lista Completa de Atletas Ativos e Aprovados</Text>
-      <View style={styles.table}>
-        <View style={[styles.tableRow, styles.tableHeader]}>
-          <Text style={[styles.tableCell, styles.headerCell]}>Nome</Text>
-          <Text style={[styles.tableCell, styles.headerCell]}>CPF</Text>
-        </View>
-        {atletas.map((atleta, i) => (
-          <View key={i} style={styles.tableRow}>
-            <Text style={styles.tableCell}>{atleta.nome.toUpperCase()}</Text>
-            <Text style={styles.tableCell}>{formatCPF(atleta.cpf)}</Text>
-          </View>
-        ))}
-      </View>
-    </Page>
-  </Document>
-);
-
-// Componente para download
-export const AtletasPDFDownload = ({ atletas }) => (
-  <PDFDownloadLink 
-    document={<AtletasPDF atletas={atletas} />} 
-    fileName="lista_completa.pdf"
-    style={{
-      textDecoration: 'none',
-      padding: '8px 16px',
-      backgroundColor: '#f0f0f0',
-      color: '#333',
-      borderRadius: '4px',
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '8px',
-    }}
-  >
-    {({ blob, url, loading, error }) => 
-      loading ? 'Gerando PDF...' : 'Baixar PDF'
-    }
-  </PDFDownloadLink>
-);
-
-Copy
-
-
-src\components\AtletasPDF.tsx
-E então no seu componente principal:
-
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { FileDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-
-// Importação dinâmica do componente PDF
-const AtletasPDFDownload = lazy(() => import('@/components/AtletasPDF').then(mod => ({ default: mod.AtletasPDFDownload })));
-
-// No seu componente
-const [pdfData, setPdfData] = useState(null);
-const [loadingPDF, setLoadingPDF] = useState(false);
-
-const preparePDFData = async () => {
-  setLoadingPDF(true);
-  try {
-    const activeAtletas = await fetchQuery(api.atletas.getAllAtivos, {});
-    const approvedSeletivas = await fetchQuery(api.seletiva.getAllApproved, {});
-
-    const allPeople = [...activeAtletas, ...approvedSeletivas]
-      .sort((a, b) => a.nome.localeCompare(b.nome));
-    
-    setPdfData(allPeople);
-  } catch (error) {
-    console.error('Erro ao preparar dados para PDF:', error);
-    toast.error('Erro ao preparar PDF', {
-      description: 'Ocorreu um erro ao preparar os dados para o PDF.',
-      duration: 3000,
-    });
-  } finally {
-    setLoadingPDF(false);
-  }
-};
-
-// No JSX
-{pdfData ? (
-  <Suspense fallback={<Button disabled>Carregando PDF...</Button>}>
-    <AtletasPDFDownload atletas={pdfData} />
-  </Suspense>
-) : (
-  <Button 
-    variant="outline" 
-    onClick={preparePDFData} 
-    disabled={loadingPDF}
-  >
-    <FileDown className="mr-2 h-4 w-4" />
-    {loadingPDF ? 'Preparando...' : 'PDF Ativos e aprovados'}
-  </Button>
-)}
-
-Copy
-
-
-src\app(dashboard)\dashboard\atletas\atletas-list.tsx
-Esta abordagem com @react-pdf/renderer é mais compatível com Next.js e deve evitar os problemas que você está enfrentando na Vercel. */
+}
