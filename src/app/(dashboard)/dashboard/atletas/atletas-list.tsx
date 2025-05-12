@@ -1,5 +1,5 @@
 'use-client'
-import { Suspense, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PenBoxIcon, Trash, FileDown, Copy } from 'lucide-react'
 import { fetchMutation, fetchQuery } from 'convex/nextjs'
 import { useSession } from 'next-auth/react'

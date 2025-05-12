@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import 'jspdf-autotable'
 import { useSidebar } from '@/components/ui/sidebar'
 import {
   Table,
