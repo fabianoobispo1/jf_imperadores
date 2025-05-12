@@ -210,13 +210,48 @@ export const AtletasList = () => {
   }
 
   const exportToPDF = () => {
-    setLoading(true);
-    
-    // Abrir em nova aba para download
-    window.open('/api/pdf/atletas', '_blank');
-    
-    setLoading(false);
-  };
+    setLoading(true)
+
+    // Criar um link para download e clicar nele
+    fetch('/api/pdf/atletas')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Erro ao gerar PDF')
+        }
+        return response.blob()
+      })
+      .then((blob) => {
+        // Criar URL para o blob
+        const url = window.URL.createObjectURL(blob)
+
+        // Criar link para download
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.download = 'lista_atletas.pdf'
+
+        // Adicionar à página, clicar e remover
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+
+        toast.success('PDF gerado com sucesso', {
+          description: 'O download do arquivo foi iniciado',
+          duration: 3000,
+        })
+      })
+      .catch((error) => {
+        console.error('Erro ao baixar PDF:', error)
+        toast.error('Erro ao gerar PDF', {
+          description: 'Ocorreu um erro ao gerar o PDF. Tente novamente.',
+          duration: 3000,
+        })
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
 
   return (
     <div

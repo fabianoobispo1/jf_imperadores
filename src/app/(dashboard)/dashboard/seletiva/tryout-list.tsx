@@ -213,7 +213,6 @@ export function TryoutList() {
       EQUIPAMENTO_LABELS[seletiva.equipamento as keyof typeof EQUIPAMENTO_LABELS],
     ])
 
-    // @ts-expect-error - Specific reason for expecting the error
     doc.autoTable({
       head: [
         [

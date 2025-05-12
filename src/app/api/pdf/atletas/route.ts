@@ -1,80 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
-import PDFDocument from 'pdfkit'
 import { fetchQuery } from 'convex/nextjs'
 import { api } from '../../../../../convex/_generated/api'
 import { formatCPF } from '@/lib/utils'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
+
+// Adicione esta declaração para estender o tipo jsPDF com o método autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF
+  }
+}
 
 export async function GET(req: NextRequest) {
   try {
-
-
     // Buscar dados
     const atletas = await fetchQuery(api.atletas.getAllAtivos, {})
 
     // Ordenar por nome
     const sortedAtletas = [...atletas].sort((a, b) => a.nome.localeCompare(b.nome))
 
-    // Criar PDF
-    const doc = new PDFDocument({ margin: 50 })
+    // Preparar dados para a tabela
+    const tableData = sortedAtletas.map((atleta) => [
+      atleta.nome.toUpperCase(),
+      formatCPF(atleta.cpf),
+    ])
 
-    // Configurar cabeçalho
-    doc.fontSize(16).text('Lista de Atletas Ativos', { align: 'center' })
-    doc.moveDown()
+    // Criar PDF com jsPDF
+    const doc = new jsPDF()
 
-    // Configurar tabela
-    const tableTop = 150
-    const colWidth = 250
-
-    // Cabeçalho da tabela
-    doc.fontSize(10).fillColor('#000000')
-    doc.rect(50, tableTop - 20, colWidth, 20).fill('#E4E4E4')
-    doc.rect(50 + colWidth, tableTop - 20, colWidth, 20).fill('#E4E4E4')
-
-    doc
-      .fillColor('#000000')
-      .text('Nome', 50, tableTop - 15)
-      .text('CPF', 50 + colWidth, tableTop - 15)
-
-    // Linhas da tabela
-    let y = tableTop
-    sortedAtletas.forEach((atleta, i) => {
-      // Alternar cores de fundo para facilitar leitura
-      const fillColor = i % 2 === 0 ? '#FFFFFF' : '#F9F9F9'
-      doc.rect(50, y, colWidth, 20).fill(fillColor)
-      doc.rect(50 + colWidth, y, colWidth, 20).fill(fillColor)
-
-      doc
-        .fillColor('#000000')
-        .fontSize(8)
-        .text(atleta.nome.toUpperCase(), 55, y + 5)
-        .text(formatCPF(atleta.cpf), 55 + colWidth, y + 5)
-
-      y += 20
-
-      // Nova página se necessário
-      if (y > 700) {
-        doc.addPage()
-        y = 50
-      }
+    // Adicionar título
+    doc.setFontSize(16)
+    doc.text('Lista de Atletas Ativos', doc.internal.pageSize.getWidth() / 2, 20, {
+      align: 'center',
     })
 
-    // Finalizar PDF
-    const chunks: Buffer[] = []
+    // Adicionar tabela usando autoTable
+    doc.autoTable({
+      head: [['Nome', 'CPF']],
+      body: tableData,
+      startY: 30,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [228, 228, 228], textColor: [0, 0, 0] },
+      alternateRowStyles: { fillColor: [249, 249, 249] },
+      margin: { top: 30 },
+    })
 
-    return new Promise<NextResponse>((resolve) => {
-      doc.on('data', (chunk) => chunks.push(chunk))
-      doc.on('end', () => {
-        const pdfBuffer = Buffer.concat(chunks)
-        const response = new NextResponse(pdfBuffer, {
-          headers: {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': 'attachment; filename=lista_atletas.pdf',
-          },
-        })
-        resolve(response)
-      })
+    // Converter para buffer
+    const pdfBuffer = Buffer.from(doc.output('arraybuffer'))
 
-      doc.end()
+    // Retornar resposta
+    return new NextResponse(pdfBuffer, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename=lista_atletas.pdf',
+      },
     })
   } catch (error) {
     console.error('Erro ao gerar PDF:', error)
