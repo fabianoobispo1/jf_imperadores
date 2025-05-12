@@ -343,28 +343,33 @@ export function TryoutList() {
   }
 
   const ImageCell = ({ imageUrl, className }: { imageUrl: string; className?: string }) => {
-    /*       return (
+    const [error, setError] = useState(false)
+
+    if (error || !imageUrl) {
+      return (
         <Image
-          src="/carousel-1.svg"
-          alt="Fallback image"
+          src="/fallback-image.jpg" // Imagem padrão
+          alt="Imagem padrão"
           className={className || 'w-12 h-12 rounded-full object-cover mx-auto'}
           width={className?.includes('w-64') ? 256 : 80}
           height={className?.includes('h-64') ? 256 : 80}
         />
       )
-  */
+    }
 
     return (
       <Image
         src={imageUrl}
-        alt="Candidate photo"
+        alt="Foto do candidato"
         className={className || 'w-12 h-12 rounded-full object-cover mx-auto'}
         width={className?.includes('w-64') ? 256 : 80}
         height={className?.includes('h-64') ? 256 : 80}
         loading="eager"
+        onError={() => setError(true)}
       />
     )
   }
+
   return (
     <>
       <div

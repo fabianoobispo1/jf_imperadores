@@ -194,3 +194,19 @@ export const getSeletivasWithNonMinioImages = query({
     return seletivas
   },
 })
+export const refreshImageUrl = mutation({
+  args: {
+    id: v.id('seletiva'),
+  },
+  handler: async (ctx, args) => {
+    const seletiva = await ctx.db.get(args.id)
+    if (seletiva && seletiva.img_key) {
+      const newUrl = await ctx.storage.getUrl(seletiva.img_key)
+      if (newUrl) {
+        await ctx.db.patch(args.id, { img_link: newUrl })
+        return newUrl
+      }
+    }
+    return undefined
+  },
+})

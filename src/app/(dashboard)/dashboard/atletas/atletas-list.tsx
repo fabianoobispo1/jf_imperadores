@@ -3,9 +3,13 @@ import { useEffect, useState } from 'react'
 import { PenBoxIcon, Trash, FileDown, Copy } from 'lucide-react'
 import { fetchMutation, fetchQuery } from 'convex/nextjs'
 import { useSession } from 'next-auth/react'
-import { jsPDF } from 'jspdf'
 
-import 'jspdf-autotable'
+import pdfMake from 'pdfmake/build/pdfmake'
+import pdfFonts from 'pdfmake/build/vfs_fonts'
+
+// Configurar fontes
+pdfMake.vfs = pdfFonts.vfs
+
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import {
   Table,
@@ -146,35 +150,52 @@ export const AtletasList = () => {
 
   const exportToPDF = async () => {
     const activeAtletas = await fetchQuery(api.atletas.getAllAtivos, {})
-    const approvedSeletivas = await fetchQuery(api.seletiva.getAllApproved, {})
+    //  const approvedSeletivas = await fetchQuery(api.seletiva.getAllApproved, {})
 
-    const allPeople = [...activeAtletas, ...approvedSeletivas]
-      .sort((a, b) => a.nome.localeCompare(b.nome))
-      .map((person) => [person.nome.toUpperCase(), person.cpf])
+    const allPeople = [...activeAtletas].sort((a, b) => a.nome.localeCompare(b.nome))
 
-    // eslint-disable-next-line new-cap
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    })
+    // Preparar dados para o PDF
+    const tableBody = allPeople.map((person) => [
+      { text: person.nome.toUpperCase(), fontSize: 8 },
+      { text: formatCPF(person.cpf), fontSize: 8 },
+    ])
 
-    doc.setFontSize(16)
-    doc.text('Lista Completa de Atletas Ativos e Aprovados', 14, 15)
+    // Definir documento
+    const docDefinition = {
+      content: [
+        { text: 'Lista Completa de Atletas Ativos e Aprovados', style: 'header' },
+        {
+          table: {
+            headerRows: 1,
+            widths: ['*', 'auto'],
+            body: [
+              [
+                { text: 'Nome', style: 'tableHeader' },
+                { text: 'CPF', style: 'tableHeader' },
+              ],
+              ...tableBody,
+            ],
+          },
+        },
+      ],
+      styles: {
+        header: {
+          fontSize: 16,
+          bold: true,
+          margin: [0, 0, 0, 10] as [number, number, number, number],
+        },
+        tableHeader: {
+          bold: true,
+          fontSize: 10,
+          color: 'white',
+          fillColor: '#003366',
+        },
+      },
+    }
 
-    // @ts-expect-error - jsPDF types
-    doc.autoTable({
-      head: [['Nome', 'CPF']],
-      body: allPeople,
-      startY: 25,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [0, 51, 102] },
-      margin: { top: 25, right: 7, bottom: 7, left: 7 },
-    })
-
-    doc.save('lista_completa.pdf')
+    // Gerar e baixar o PDF
+    pdfMake.createPdf(docDefinition).download('lista_completa.pdf')
   }
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
