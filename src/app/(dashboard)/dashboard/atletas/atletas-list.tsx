@@ -1,5 +1,5 @@
 'use-client'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { PenBoxIcon, Trash, FileDown, Copy } from 'lucide-react'
 import { fetchMutation, fetchQuery } from 'convex/nextjs'
 import { useSession } from 'next-auth/react'
@@ -37,6 +37,7 @@ import { AtletasForm } from '../../../../components/forms/atletas-form'
 import { toast } from 'sonner'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { AtletasPDFDownload } from '@/components/pdf/AtletasPDF'
 
 const SETOR_LABELS = {
   1: 'Ataque',
@@ -142,61 +143,41 @@ export const AtletasList = () => {
     setLoading(false)
   }
 
-  const exportToPDF = async () => {
-    // Importação dinâmica do pdfMake
-    const pdfMake = (await import('pdfmake/build/pdfmake')).default
-    const pdfFonts = (await import('pdfmake/build/vfs_fonts')).default
+  const [pdfData, setPdfData] = useState<{ nome: string; cpf: string }[] | null>(null)
+  const [loadingPDF, setLoadingPDF] = useState(false)
 
-    // Configurar fontes
-    pdfMake.vfs = pdfFonts.vfs
+  const preparePDFData = async () => {
+    setLoadingPDF(true)
+    try {
+      const activeAtletas = await fetchQuery(api.atletas.getAllAtivos, {})
 
-    const activeAtletas = await fetchQuery(api.atletas.getAllAtivos, {})
-    //  const approvedSeletivas = await fetchQuery(api.seletiva.getAllApproved, {})
+      // Ordenar por nome
+      const sortedAtletas = [...activeAtletas].sort((a, b) => a.nome.localeCompare(b.nome))
 
-    const allPeople = [...activeAtletas].sort((a, b) => a.nome.localeCompare(b.nome))
+      // Mapear apenas os campos necessários para o PDF
+      const formattedData = sortedAtletas.map((atleta) => ({
+        nome: atleta.nome,
+        cpf: atleta.cpf,
+      }))
 
-    // Preparar dados para o PDF
-    const tableBody = allPeople.map((person) => [
-      { text: person.nome.toUpperCase(), fontSize: 8 },
-      { text: formatCPF(person.cpf), fontSize: 8 },
-    ])
+      setPdfData(formattedData)
 
-    // Definir documento
-    const docDefinition = {
-      content: [
-        { text: 'Lista Completa de Atletas Ativos', style: 'header' },
-        {
-          table: {
-            headerRows: 1,
-            widths: ['*', 'auto'],
-            body: [
-              [
-                { text: 'Nome', style: 'tableHeader' },
-                { text: 'CPF', style: 'tableHeader' },
-              ],
-              ...tableBody,
-            ],
-          },
-        },
-      ],
-      styles: {
-        header: {
-          fontSize: 16,
-          bold: true,
-          margin: [0, 0, 0, 10] as [number, number, number, number],
-        },
-        tableHeader: {
-          bold: true,
-          fontSize: 10,
-          color: 'white',
-          fillColor: '#003366',
-        },
-      },
+      toast.success('PDF pronto para download', {
+        description: 'Clique no botão para baixar o arquivo',
+        duration: 3000,
+        richColors: true,
+      })
+    } catch (error) {
+      console.error('Erro ao preparar dados para PDF:', error)
+      toast.error('Erro ao preparar PDF', {
+        description: 'Ocorreu um erro ao preparar os dados para o PDF.',
+        duration: 3000,
+      })
+    } finally {
+      setLoadingPDF(false)
     }
-
-    // Gerar e baixar o PDF
-    pdfMake.createPdf(docDefinition).download('lista_completa.pdf')
   }
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
@@ -233,10 +214,22 @@ export const AtletasList = () => {
           <Label htmlFor="copy-mode">Exibir botões de cópia</Label>
         </div>
 
-        <Button variant="outline" onClick={() => exportToPDF()}>
-          <FileDown className="mr-2 h-4 w-4" />
-          PDF Ativos e aprovados
-        </Button>
+        {pdfData ? (
+          <Suspense
+            fallback={
+              <Button variant="outline" disabled>
+                Carregando PDF...
+              </Button>
+            }
+          >
+            <AtletasPDFDownload atletas={pdfData} />
+          </Suspense>
+        ) : (
+          <Button variant="outline" onClick={preparePDFData} disabled={loadingPDF}>
+            <FileDown className="mr-2 h-4 w-4" />
+            {loadingPDF ? 'Preparando...' : 'PDF Ativos'}
+          </Button>
+        )}
       </div>
       <div className="w-full overflow-auto">
         <div className="w-full pr-4">
