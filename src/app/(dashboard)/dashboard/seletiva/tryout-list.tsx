@@ -1,11 +1,9 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import { fetchMutation, fetchQuery } from 'convex/nextjs'
-/* import axios from 'axios' */
-import { jsPDF } from 'jspdf'
+
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
-import { FileDown } from 'lucide-react'
 
 import {
   Select,
@@ -179,7 +177,7 @@ export function TryoutList() {
     }
   }
 
-  const exportToPDF = async () => {
+  /*   const exportToPDF = async () => {
     const allSeletivas = await fetchQuery(api.seletiva.getAll, {})
 
     const sortedSeletivas = [...allSeletivas].sort((a, b) => {
@@ -237,7 +235,7 @@ export function TryoutList() {
     })
 
     doc.save('lista-completa-seletiva.pdf')
-  }
+  } */
   // Adicione essa função para buscar os exercícios e tempos
   const loadExercicios = useCallback(async () => {
     const allExercicios = await fetchQuery(api.exercicios.getAll, {})
@@ -379,10 +377,10 @@ export function TryoutList() {
       >
         <div className="w-full overflow-auto">
           <div className="flex justify-between items-center  pr-4">
-            <Button variant="outline" size="sm" onClick={exportToPDF}>
+            {/*      <Button variant="outline" size="sm" onClick={exportToPDF}>
               <FileDown className="mr-2 h-4 w-4" />
               Baixar PDF
-            </Button>
+            </Button> */}
             <div className="flex items-center space-x-2">
               <Button
                 onClick={() => {
