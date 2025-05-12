@@ -37,7 +37,6 @@ import { AtletasForm } from '../../../../components/forms/atletas-form'
 import { toast } from 'sonner'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { AtletasPDFDownload } from '@/components/pdf/AtletasPDF'
 
 const SETOR_LABELS = {
   1: 'Ataque',
@@ -143,53 +142,6 @@ export const AtletasList = () => {
     setLoading(false)
   }
 
-  const [pdfData, setPdfData] = useState<{ nome: string; cpf: string }[] | null>(null)
-  const [loadingPDF, setLoadingPDF] = useState(false)
-
-  const preparePDFData = async () => {
-    setLoadingPDF(true)
-    try {
-      // Usar try/catch para cada operação de rede
-      let activeAtletas
-      try {
-        activeAtletas = await fetchQuery(api.atletas.getAllAtivos, {})
-      } catch (error) {
-        console.error('Erro ao buscar atletas ativos:', error)
-        throw new Error('Falha ao buscar dados dos atletas')
-      }
-
-      // Ordenar por nome
-
-      const sortedAtletas = [...activeAtletas].sort((a, b) => a.nome.localeCompare(b.nome))
-
-      // Mapear apenas os campos necessários para o PDF (reduzir tamanho dos dados)
-      const formattedData = sortedAtletas.map((atleta) => ({
-        nome: atleta.nome,
-
-        cpf: atleta.cpf,
-      }))
-
-      // Verificar se há dados antes de prosseguir
-      if (formattedData.length === 0) {
-        toast.warning('Sem dados', {
-          description: 'Não há atletas ativos para gerar o PDF',
-          duration: 3000,
-        })
-        return
-      }
-
-      setPdfData(formattedData)
-    } catch (error) {
-      console.error('Erro ao preparar dados para PDF:', error)
-      toast.error('Erro ao preparar PDF', {
-        description: 'Ocorreu um erro ao preparar os dados para o PDF.',
-        duration: 3000,
-      })
-    } finally {
-      setLoadingPDF(false)
-    }
-  }
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
@@ -270,32 +222,10 @@ export const AtletasList = () => {
           <Label htmlFor="copy-mode">Exibir botões de cópia</Label>
         </div>
 
-        {pdfData ? (
-          <div className="flex gap-2">
-            <Suspense
-              fallback={
-                <Button variant="outline" disabled>
-                  Carregando PDF...
-                </Button>
-              }
-            >
-              <AtletasPDFDownload atletas={pdfData} />
-            </Suspense>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setPdfData(null)}
-              title="Cancelar geração de PDF"
-            >
-              <Trash className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <Button variant="outline" onClick={preparePDFData} disabled={loadingPDF}>
-            <FileDown className="mr-2 h-4 w-4" />
-            {loadingPDF ? 'Preparando...' : 'PDF Ativos'}
-          </Button>
-        )}
+        <Button variant="outline" onClick={exportToPDF} disabled={loading}>
+          <FileDown className="mr-2 h-4 w-4" />
+          {loading ? 'Gerando...' : 'PDF Ativos'}
+        </Button>
       </div>
       <div className="w-full overflow-auto">
         <div className="w-full pr-4">
