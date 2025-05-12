@@ -4,12 +4,6 @@ import { PenBoxIcon, Trash, FileDown, Copy } from 'lucide-react'
 import { fetchMutation, fetchQuery } from 'convex/nextjs'
 import { useSession } from 'next-auth/react'
 
-import pdfMake from 'pdfmake/build/pdfmake'
-import pdfFonts from 'pdfmake/build/vfs_fonts'
-
-// Configurar fontes
-pdfMake.vfs = pdfFonts.vfs
-
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import {
   Table,
@@ -149,6 +143,13 @@ export const AtletasList = () => {
   }
 
   const exportToPDF = async () => {
+    // Importação dinâmica do pdfMake
+    const pdfMake = (await import('pdfmake/build/pdfmake')).default
+    const pdfFonts = (await import('pdfmake/build/vfs_fonts')).default
+
+    // Configurar fontes
+    pdfMake.vfs = pdfFonts.vfs
+
     const activeAtletas = await fetchQuery(api.atletas.getAllAtivos, {})
     //  const approvedSeletivas = await fetchQuery(api.seletiva.getAllApproved, {})
 
