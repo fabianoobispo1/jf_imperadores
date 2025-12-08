@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const PDF_FILE =
   "/Proposta de Captação de Patrocínios JF Imperadores - Campeonato Mineiro 2026.pdf";
@@ -85,54 +87,22 @@ export default function Page() {
   }
 
   return (
-    <div style={{ padding: 12, minHeight: "100vh", background: "#000" }}>
-      <div
-        style={{
-          maxWidth: 960,
-          margin: "12px auto",
-          background: "#111",
-          borderRadius: 8,
-          overflow: "hidden",
-          boxShadow: "0 6px 18px rgba(0,0,0,0.6)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            padding: 8,
-          }}
-        >
-          <a
-            href={PDF_SRC}
-            download
-            style={{
-              color: "#fff",
-              opacity: 0.9,
-              textDecoration: "underline",
-            }}
-          >
-            Baixar PDF
-          </a>
-          <a
-            href={PDF_SRC}
-            target="_blank"
-            rel="noreferrer"
-            style={{ color: "#fff", marginLeft: "auto" }}
-          >
-            Abrir em nova aba
-          </a>
+    <div className={cn("p-3 min-h-screen bg-black")}>
+      <div className={cn("max-w-3xl mx-auto bg-background rounded-lg overflow-hidden shadow-lg")}>
+        <div className={cn("flex gap-2 items-center p-3")}>
+          {/* Ações: baixar / abrir */}
+          <Button asChild variant="ghost" size="sm">
+            <a href={PDF_SRC} download>Baixar PDF</a>
+          </Button>
+
+          <div className="ml-auto flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <a href={PDF_SRC} target="_blank" rel="noreferrer">Abrir em nova aba</a>
+            </Button>
+          </div>
         </div>
 
-        <div
-          style={{
-            position: "relative",
-            width: "100%",
-            height: "70vh",
-            minHeight: 420,
-          }}
-        >
+        <div className={cn("relative w-full h-[70vh] min-h-[420px]")}>
           {loading && (
             <div
               style={{
@@ -151,47 +121,31 @@ export default function Page() {
             </div>
           )}
 
-          {/* Visualizador embutido — carregado direto */}
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              color: "#fff",
-              padding: 24,
-              textAlign: "center",
-              overflow: "auto",
-              background: "#000",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "center", padding: 12 }}>
-              <canvas ref={canvasRef} style={{ maxWidth: "100%", height: "auto" }} />
-            </div>
-            <div style={{ display: "flex", gap: 8, justifyContent: "center", padding: 12 }}>
-              <button
-                onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
-                disabled={pageNumber <= 1}
-                style={{ padding: "6px 10px", borderRadius: 6 }}
-              >
-                Anterior
-              </button>
-              <div style={{ color: "#fff", alignSelf: "center" }}>
-                Página {pageNumber} {numPages ? `de ${numPages}` : ""}
+          {loadIframe ? (
+            <div className={cn("w-full h-full flex flex-col items-center justify-start text-white p-6 text-center overflow-auto bg-black")}>
+              <div className="flex justify-center p-3 w-full">
+                <canvas ref={canvasRef} className="max-w-full h-auto" />
               </div>
-              <button
-                onClick={() => setPageNumber((p) => (numPages ? Math.min(numPages, p + 1) : p + 1))}
-                disabled={numPages !== null && pageNumber >= numPages}
-                style={{ padding: "6px 10px", borderRadius: 6 }}
-              >
-                Próxima
-              </button>
+              <div className="flex gap-2 justify-center p-3">
+                <Button onClick={() => setPageNumber((p) => Math.max(1, p - 1))} size="sm" disabled={pageNumber <= 1}>
+                  Anterior
+                </Button>
+                <div className="text-white self-center">Página {pageNumber} {numPages ? `de ${numPages}` : ""}</div>
+                <Button onClick={() => setPageNumber((p) => (numPages ? Math.min(numPages, p + 1) : p + 1))} size="sm" disabled={numPages !== null && pageNumber >= numPages}>
+                  Próxima
+                </Button>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white p-6 text-center">
+              <div>
+                <p className="m-0 text-lg font-semibold">Proposta JF Imperadores</p>
+                <p className="mt-2 opacity-90">O PDF será aberto automaticamente.</p>
+              </div>
+            </div>
+          )}
+         </div>
+       </div>
+     </div>
+   );
+ }
