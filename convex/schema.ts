@@ -178,6 +178,14 @@ export const presencaSchema = {
   created_at: v.number(),
 }
 
+export const vendacamisaSchema = {
+  nome: v.string(),
+  numero: v.string(),
+  tamanho: v.string(),
+  created_at: v.number(),
+  updated_at: v.number(),
+}
+
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema).index('by_email', ['email']).index('by_username', ['nome']),
@@ -209,4 +217,5 @@ export default defineSchema({
     .index('by_data_treino', ['data_treino'])
     .index('by_atleta_id', ['atleta_id'])
     .index('by_atleta_data', ['atleta_id', 'data_treino']),
+  vendacamisa: defineTable(vendacamisaSchema).index('by_nome', ['nome']),
 })

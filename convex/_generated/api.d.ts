@@ -28,6 +28,7 @@ import type * as telaLinks from "../telaLinks.js";
 import type * as todo from "../todo.js";
 import type * as transacao from "../transacao.js";
 import type * as user from "../user.js";
+import type * as vendacamisa from "../vendacamisa.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -53,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   todo: typeof todo;
   transacao: typeof transacao;
   user: typeof user;
+  vendacamisa: typeof vendacamisa;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

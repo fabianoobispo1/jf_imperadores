@@ -82,6 +82,11 @@ const itemsAdm = [
     icon: Settings,
   },
   {
+    title: 'Venda de Camisas',
+    url: '/dashboard/venda-camisa',
+    icon: User,
+  },
+  {
     title: 'Configurar WhatsApp',
     url: '/dashboard/configwhatsapp',
     icon: ChevronsLeftRightEllipsisIcon,
