@@ -2,13 +2,27 @@ import Stripe from 'stripe'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
-  appInfo: {
-    name: 'jf-imperadores',
-  },
-})
+let stripe: Stripe | null = null
+
+function getStripe() {
+  if (!stripe && process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-02-24.acacia',
+      appInfo: {
+        name: 'jf-imperadores',
+      },
+    })
+  }
+  return stripe
+}
+
 export async function GET() {
+  const stripeClient = getStripe()
+
+  if (!stripeClient) {
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
+  }
+
   const headersList = headers()
   const apiKey = (await headersList).get('x-api-key')
 
@@ -17,7 +31,7 @@ export async function GET() {
   }
 
   try {
-    const response = await stripe.products.list({
+    const response = await stripeClient.products.list({
       expand: ['data.default_price'],
       active: true,
     })

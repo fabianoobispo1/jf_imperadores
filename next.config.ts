@@ -4,6 +4,16 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // Só use isso em desenvolvimento
   },
+  webpack: (config) => {
+    // Ignore canvas module from pdfjs-dist (only used in Node.js, not in browser)
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      canvas: false,
+      fs: false,
+      path: false,
+    }
+    return config
+  },
   env: {
     MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
     MINIO_BUCKET: process.env.MINIO_BUCKET,

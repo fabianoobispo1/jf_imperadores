@@ -6,13 +6,29 @@ import Livre from '@/components/emailTemplates/email-livre'
 
 import { ResetPasswordEmail } from '../../../components/emailTemplates/email-reset-password'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let resend: Resend | null = null
+
+function getResend() {
+  if (!resend && process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
 
 export async function POST(request: Request) {
+  const resendClient = getResend()
+  
+  if (!resendClient) {
+    return Response.json(
+      { error: 'Resend API key not configured' },
+      { status: 500 }
+    )
+  }
+
   const { email, idRecuperaSenha, nome, tipoMensagem, conteudo, assunto } = await request.json()
   if (tipoMensagem === 'redefinirSenha') {
     try {
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await resendClient.emails.send({
         from: 'JF Imperadores <nao-responda@marketing.jfimperadores.com.br>',
         to: [email],
         subject: 'Recupar senha',
@@ -35,7 +51,7 @@ export async function POST(request: Request) {
 
   if (tipoMensagem === 'confirmaSeletiva') {
     try {
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await resendClient.emails.send({
         from: 'JF Imperadores <nao-responda@marketing.jfimperadores.com.br>',
         to: [email],
         subject: 'Confirmação da seletiva',
@@ -57,7 +73,7 @@ export async function POST(request: Request) {
 
   if (tipoMensagem === 'seletiva') {
     try {
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await resendClient.emails.send({
         from: 'JF Imperadores <nao-responda@marketing.jfimperadores.com.br>',
         to: [email],
         subject: 'JF Imperadores - Seletiva',
@@ -77,7 +93,7 @@ export async function POST(request: Request) {
   }
   if (tipoMensagem === 'livre') {
     try {
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await resendClient.emails.send({
         from: 'JF Imperadores <nao-responda@marketing.jfimperadores.com.br>',
         to: [email],
         subject: assunto,
