@@ -13,13 +13,37 @@ export async function GET(request: Request) {
     )
   }
 
-  const response = await fetch(`${baseUrl}/session/terminate/${sessionName}`, {
-    headers: {
-      accept: 'application/json',
-      'x-api-key': apiKey,
-    },
-  })
+  try {
+    // Primeiro faz logout
+    const logoutResponse = await fetch(`${baseUrl}/instance/logout/${sessionName}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: apiKey,
+      },
+    })
 
-  const data = await response.json()
-  return NextResponse.json(data)
+    // Depois deleta a instância
+    const deleteResponse = await fetch(`${baseUrl}/instance/delete/${sessionName}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: apiKey,
+      },
+    })
+
+    if (!deleteResponse.ok) {
+      const errorData = await deleteResponse.json()
+      console.error('Delete error:', errorData)
+    }
+
+    const data = await deleteResponse.json()
+    return NextResponse.json({ success: true, ...data })
+  } catch (error) {
+    console.error('Error terminating session:', error)
+    return NextResponse.json(
+      { error: 'Failed to terminate session', details: error },
+      { status: 500 },
+    )
+  }
 }

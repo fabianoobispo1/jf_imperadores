@@ -13,16 +13,44 @@ export async function GET(request: Request) {
     )
   }
 
-  const response = await fetch(
-    `${baseUrl}/client/getClassInfo/${sessionName}`,
-    {
-      headers: {
-        accept: 'application/json',
-        'x-api-key': apiKey,
+  try {
+    const response = await fetch(
+      `${baseUrl}/instance/fetchInstances?instanceName=${sessionName}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: apiKey,
+        },
       },
-    },
-  )
+    )
 
-  const data = await response.json()
-  return NextResponse.json(data)
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    console.log('Instance info:', data)
+    
+    // A resposta é um array, pegar o primeiro elemento
+    const instance = Array.isArray(data) ? data[0] : data
+    
+    // Mapear para o formato esperado pelo frontend
+    const mappedData = {
+      sessionInfo: {
+        pushname: instance?.profileName || instance?.name || '',
+        me: {
+          user: instance?.ownerJid?.replace('@s.whatsapp.net', '') || '',
+        },
+      },
+    }
+    
+    return NextResponse.json(mappedData)
+  } catch (error) {
+    console.error('Error getting number:', error)
+    return NextResponse.json(
+      { error: 'Failed to get number info' },
+      { status: 500 },
+    )
+  }
 }

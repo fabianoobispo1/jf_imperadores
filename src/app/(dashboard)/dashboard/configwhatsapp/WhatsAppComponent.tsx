@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react'
 /* import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation' */
 import Image from 'next/image'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -98,13 +99,30 @@ export function WhatsAppComponent() {
         responseType: 'blob', // Importante para receber a imagem
       })
 
+      // Verificar se realmente é uma imagem
+      if (response.data.type === 'application/json') {
+        // Se retornou JSON, é porque houve erro
+        const reader = new FileReader()
+        reader.onload = () => {
+          const errorData = JSON.parse(reader.result as string)
+          console.error('QR Code error:', errorData)
+          toast.error(`Erro ao gerar QR Code: ${errorData.error || 'Erro desconhecido'}`)
+        }
+        reader.readAsText(response.data)
+        setLoading(false)
+        return
+      }
+
       // Converter o blob para URL
       const imageUrl = URL.createObjectURL(response.data)
       setQrCodeImage(imageUrl)
       setShowQR(true)
       setQrKey((prev) => prev + 1)
-    } catch (error) {
+      toast.success('QR Code gerado com sucesso!')
+    } catch (error: any) {
       console.error('Error fetching QR code:', error)
+      const errorMsg = error.response?.data?.error || error.message || 'Erro ao gerar QR Code'
+      toast.error(`Erro: ${errorMsg}`)
     }
     setLoading(false)
   }

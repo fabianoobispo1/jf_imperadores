@@ -14,31 +14,53 @@ export async function POST(request: Request) {
     )
   }
 
-  /*        string: { value: { chatId: '6281288888888@c.us', contentType: 'string', content: 'Hello World!' } },
-            MessageMedia: { value: { chatId: '6281288888888@c.us', contentType: 'MessageMedia', content: { mimetype: 'image/jpeg', data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', filename: 'image.jpg' } } },
-            MessageMediaFromURL: { value: { chatId: '6281288888888@c.us', contentType: 'MessageMediaFromURL', content: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example' } },
-            Location: { value: { chatId: '6281288888888@c.us', contentType: 'Location', content: { latitude: -6.2, longitude: 106.8, description: 'Jakarta' } } },
-            Buttons: { value: { chatId: '6281288888888@c.us', contentType: 'Buttons', content: { body: 'Hello World!', buttons: [{ body: 'button 1' }], title: 'Hello World!', footer: 'Hello World!' } } },
-            List: {
-              value: { chatId: '6281288888888@c.us', contentType: 'List', content: { body: 'Hello World!', buttonText: 'Hello World!', sections: [{ title: 'sectionTitle', rows: [{ id: 'customId', title: 'ListItem2', description: 'desc' }, { title: 'ListItem2' }] }], title: 'Hello World!', footer: 'Hello World!' } }
-            },
-            Contact: {
-              value: { chatId: '6281288888888@c.us', contentType: 'Contact', content: { contactId: '6281288888889@c.us' } }
-            },
-            Poll: {
-              value: { chatId: '6281288888888@c.us', contentType: 'Poll', content: { pollName: 'Cats or Dogs?', pollOptions: ['Cats', 'Dogs'], options: { allowMultipleAnswers: true } } }
-            }, */
+  try {
+    // Mapear o corpo da requisição para o formato da Evolution API v2.2.1
+    let payload: any = {
+      number: body.chatId.replace('@c.us', ''),
+    }
 
-  const response = await fetch(`${baseUrl}/client/sendMessage/${sessionName}`, {
-    method: 'POST',
-    headers: {
-      accept: '*/*',
-      'x-api-key': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  })
+    if (body.contentType === 'string') {
+      // Mensagem de texto
+      payload.text = body.content
+    } else if (body.contentType === 'MessageMedia') {
+      // Mensagem com mídia
+      payload = {
+        number: body.chatId.replace('@c.us', ''),
+        mediatype: 'image',
+        mimetype: body.content.mimetype,
+        caption: '',
+        media: body.content.data, // base64
+        fileName: body.content.filename,
+      }
+    }
 
-  const data = await response.json()
-  return NextResponse.json(data)
+    const endpoint = body.contentType === 'MessageMedia' 
+      ? `${baseUrl}/message/sendMedia/${sessionName}`
+      : `${baseUrl}/message/sendText/${sessionName}`
+
+    console.log('Sending message to:', endpoint, 'Payload:', payload)
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: apiKey,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error('Error sending message:', error)
+    return NextResponse.json(
+      { error: 'Failed to send message' },
+      { status: 500 },
+    )
+  }
 }
