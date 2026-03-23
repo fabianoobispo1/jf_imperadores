@@ -15,16 +15,11 @@ export default function GoogleSignInButton() {
 
   async function handleLogin() {
     setLoading(true)
-
-    const result = await signIn('google', {
+    // signIn para OAuth providers (Google) não retorna mais result, apenas faz o redirect
+    await signIn('google', {
       callbackUrl: callbackUrl ?? '/dashboard',
     })
-    if (result?.error) {
-      console.log(result)
-    } else {
-      setLoading(false)
-      /*  window.location.href = result?.url ?? '/dashboard'; */
-    }
+    // O fluxo não continua aqui, pois o usuário será redirecionado
     setLoading(false)
   }
   return (
